@@ -1,9 +1,15 @@
 (function(){
 	'user strict';
 	
+	var app = angular.module('browser', ['ui.router']);
+	
+	/* Native UI */
+	
 	var gui = require('nw.gui');
 	
-	var app = angular.module('browser', ['ui.router']);
+	// Tab menu
+	
+	var tabMenu = new gui.Menu(), tabMenuPinItem, tabMenuTarget;
 	
 	/* Services */
 	
@@ -207,6 +213,44 @@
 		return new SFavicon();
 	});
 	
+	app.service('SPinnedTab', function($timeout, $sce) {
+		var SPinnedTab = function() {
+			var self = this;
+			
+			var data = localStorage.getItem('pinnedTabs');
+			var pinnedTabs;
+			
+			if(!data) {
+				pinnedTabs = {};
+			} else {
+				pinnedTabs = JSON.parse(data);
+			}
+			
+			self.getAll = function() {
+				return pinnedTabs;
+			}
+			
+			self.setAll = function(tabs) {
+				pinnedTabs = [];
+				$.each(tabs, function(key, tab) {
+					if(tab.pinned) {
+						pinnedTabs.push({
+							url: tab.urlInput,
+							favicon: (tab.favicon?tab.favicon.$$unwrapTrustedValue():null)
+						});
+					}
+				})
+				self.save();
+			}
+			
+			self.save = function() {
+				localStorage.setItem('pinnedTabs', JSON.stringify(pinnedTabs));
+			};
+		}
+		
+		return new SPinnedTab();
+	});
+	
 	/* Filters */
 	
 	
@@ -226,9 +270,11 @@
     
 	/// Main UI
 	
-	app.controller('CMainUi', function($scope, $sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon) {
+	app.controller('CMainUi', function($scope, $sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon, SPinnedTab) {
 		
 		var win = gui.Window.get();
+		
+		$scope.userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0 Nux/0.1";
 		
 		$scope.favorites = [
 			
@@ -265,56 +311,9 @@
 		];
 		
 		$scope.tabs = [
-			{
-				url: null,
-				urlInput: 'twitter.com',
-				fakeUrl: null,
-				favicon: null,
-				title: 'Nouvel onglet',
-				bookmarked: false,
-				historyItem: null,
-				pinned: true
-			},
-			{
-				url: null,
-				urlInput: 'facebook.com',
-				fakeUrl: null,
-				favicon: null,
-				title: 'Nouvel onglet',
-				bookmarked: false,
-				historyItem: null,
-				pinned: true
-			},
-			{
-				url: null,
-				urlInput: 'mail.google.com',
-				fakeUrl: null,
-				favicon: null,
-				title: 'Nouvel onglet',
-				bookmarked: false,
-				historyItem: null,
-				pinned: true
-			},
-			{
-				url: null,
-				urlInput: 'https://play.google.com/music/listen',
-				fakeUrl: null,
-				favicon: null,
-				title: 'Nouvel onglet',
-				bookmarked: false,
-				historyItem: null,
-				pinned: true
-			},
-			{
-				url: null,
-				urlInput: 'duckduckgo.com',
-				fakeUrl: null,
-				favicon: null,
-				title: 'Nouvel onglet',
-				bookmarked: false,
-				historyItem: null
-			}
+			
 		];
+		
 		
 		$scope.currentTab = $scope.tabs[0];
 		
@@ -491,8 +490,10 @@
 				/*if(tab.window.location) {
 					SFavicon.set(tab.window.location.origin, iconUrl);
 				}*/
-				tab.historyItem.favicon = tab.favicon;
-				tab.historyItem.faviconUrl = tab.favicon.$$unwrapTrustedValue();
+				if(tab.historyItem) {
+					tab.historyItem.favicon = tab.favicon;
+					tab.historyItem.faviconUrl = tab.favicon.$$unwrapTrustedValue();
+				}
 				SHistory.save();
 			});
 		};
@@ -509,8 +510,11 @@
 			$scope.closeLaunchpad();
 		};
 
-		$scope.refresh = function() {
-			$scope.currentTab.window.location.reload();
+		$scope.refresh = function(tab) {
+			if(tab == undefined) {
+				tab = $scope.currentTab;
+			}
+			tab.window.location.reload();
 			$scope.closeLaunchpad();
 		};
 
@@ -600,16 +604,7 @@
 		
 		/* Keyboard shortcuts */
 		
-		$(document).bind('keydown', 'f5', function(){
-			$scope.refresh();
-		});
-		$(document).bind('keydown', 'f6', function(){
-			$('#urlInput').select();
-		});
-
-		$(document).keypress(function (e) {
-			console.log("key", e.which);
-		});
+		
 		
 		/* Url input */
 
@@ -685,19 +680,68 @@
 			$scope.closeLaunchpad();
 		};
 		
-		$scope.addTab = function() {
-			var tab = {
-				url: null,
-				urlInput: 'duckduckgo.com',
-				fakeUrl: null,
-				favicon: null,
-				title: 'Nouvel onglet',
-				bookmarked: false,
-				historyItem: null
-			};
+		$scope.addTab = function(tab) {
+			if(tab == undefined) {
+				tab = {
+					url: null,
+					urlInput: 'duckduckgo.com',
+					fakeUrl: null,
+					favicon: null,
+					title: null,
+					bookmarked: false,
+					historyItem: null
+				};
+			}
 			$scope.tabs.push(tab);
 			$scope.selectTab(tab);
 			$scope.closeLaunchpad();
+		};
+		
+		$scope.openTab = function(sourceTab, afterTab, url, autoSelect) {
+			$timeout(function() {
+				var tab = {
+					url: null,
+					urlInput: url,
+					fakeUrl: null,
+					favicon: null,
+					title: null,
+					bookmarked: false,
+					historyItem: null
+				};
+				var index = -1;
+
+				var l = $scope.tabs.length;
+
+				// Insert after last pinned tab
+				if(afterTab.pinned) {
+					for(var i = 0; i < l; i++) {
+						if(!$scope.tabs[i].pinned) {
+							index = i - 1;
+							break;
+						}
+					}
+
+				} else {
+					// Insert after source tab
+					index = $scope.tabs.indexOf(afterTab);
+				}
+
+				if(index == -1) {
+					index = l - 1;	
+				}
+				
+				sourceTab.lastChildrenTab = tab;
+				tab.parentTab = sourceTab;
+
+				$scope.tabs.splice(index + 1, 0, tab);
+
+				if(autoSelect) {
+					$scope.selectTab(tab);
+				}
+
+				$scope.closeLaunchpad();
+			});
+			
 		};
 		
 		$scope.closeTab = function(tab) {
@@ -717,6 +761,95 @@
 				}, 300);
 			}
 		};
+		
+		$scope.pinTab = function(tab) {
+			$timeout(function() {
+				var index = $scope.tabs.indexOf(tab);
+				if(index != -1) {
+					$scope.tabs.splice(index, 1);
+				}
+				
+				index = 0;
+				var l = $scope.tabs.length;
+				for(var i = 0; i < l; i++) {
+					if($scope.tabs[i].pinned) {
+						index = i + 1;
+					}
+				}
+				
+				$scope.tabs.splice(index, 0, tab);
+				tab.pinned = true;
+			});
+		};
+		
+		$scope.unpinTab = function(tab) {
+			$timeout(function() {
+				var index = $scope.tabs.indexOf(tab);
+				if(index != -1) {
+					$scope.tabs.splice(index, 1);
+				}
+				
+				index = 0;
+				var l = $scope.tabs.length;
+				for(var i = 0; i < l; i++) {
+					if(!$scope.tabs[i].pinned) {
+						index = i;
+						break;
+					}
+				}
+				
+				$scope.tabs.splice(index, 0, tab);
+				tab.pinned = false;
+			});
+		};
+		
+		$scope.moveTabTo = function(tab, position) {
+			$timeout(function() {
+				var index = $scope.tabs.indexOf(tab);
+				if(index != -1) {
+					$scope.tabs.splice(index, 1);
+				}
+				
+				$scope.tabs.splice(position, 0, tab);
+			});
+		};
+		
+		/* Tab Menu */
+		
+		tabMenu.append(new gui.MenuItem({
+			label: 'Actualiser',
+			click: function(evt) {
+				if(tabMenuTarget) {
+					$scope.refresh(tabMenuTarget);
+				}
+			}
+		}));
+		
+		tabMenu.append(tabMenuPinItem = new gui.MenuItem({ 
+			label: 'Epingler',
+			click: function(evt) {
+				if(tabMenuTarget) {
+					if(tabMenuTarget.pinned) {
+						$scope.unpinTab(tabMenuTarget);
+					} else {
+						$scope.pinTab(tabMenuTarget);
+					}
+				}
+			} 
+		}));
+		
+		tabMenu.append(new gui.MenuItem({
+			type: 'separator'
+		}));
+		
+		tabMenu.append(new gui.MenuItem({
+			label: 'Fermer',
+			click: function(evt) {
+				if(tabMenuTarget) {
+					$scope.closeTab(tabMenuTarget);
+				}
+			}
+		}));
 		
 		/* Window */
 		
@@ -747,6 +880,35 @@
 			});
 		});
 		
+		win.on('close', function() {
+			SBookmark.save();
+			SHistory.save();
+			SPinnedTab.setAll($scope.tabs);
+			SPinnedTab.save();
+		});
+		
+		/* Pinned tabs */
+		
+		var pinnedTabs = SPinnedTab.getAll();
+		$.each(pinnedTabs, function(key, tab) {
+			$scope.addTab({
+				url: null,
+				urlInput: tab.url,
+				fakeUrl: null,
+				favicon: (tab.favicon?$sce.trustAsUrl(tab.favicon):null),
+				title: null,
+				bookmarked: false,
+				historyItem: null,
+				pinned: true
+			});
+		});
+		
+		/* Session restoration */
+		
+		$scope.addTab();
+		
+		// TODO
+		
 		/* Start animation */
 		
 		$('.browser--main-ui').removeClass('hidden');
@@ -765,8 +927,6 @@
 		$scope.tab.iframeElement = $(element);
 		var window = element.contentWindow;
 		$scope.tab.window = window;
-        
-        console.log(element);
 		
 		// Load state management
 		
@@ -779,22 +939,33 @@
 		
 		function onDocumentReadyStateChange() {
 			var document = window.document;
-			if(document && document.readyState != oldState) {
-				console.log($scope.tab.urlInput + ' ' + oldState + ' -> ' + document.readyState);
-				oldState = document.readyState;
+			if(document) {
+				if(document.readyState != oldState) {
+					console.log($scope.tab.urlInput + ' ' + oldState + ' -> ' + document.readyState);
+					oldState = document.readyState;
+
+					if(document.readyState == "loaded" || document.readyState == "interactive" || document.readyState == "complete") {
+						$scope.$parent.$parent.onTabDocumentReady($scope.tab);
+
+						if(document.readyState == "complete") {
+							$scope.tab.loading = false;
+							$scope.$parent.$parent.onTabLoad($scope.tab);
+						}
+					}
+				}
 				
 				if(document.readyState == "uninitialized" || document.readyState == "loading") {
 					$scope.tab.loading = true;
 					$scope.tab.title = "Chargement...";
 				} else {
-					$scope.$parent.$parent.onTabDocumentReady($scope.tab);
-					
-					if(document.readyState == "complete") {
-						$scope.tab.loading = false;
-						$scope.$parent.$parent.onTabLoad($scope.tab);
-					}
+					$scope.tab.title = document.title;
+				}
+				
+				if(document.getElementsByTagName('body')[0]) {
+					handleClicks();
 				}
 			}
+			
 		}
 		
 		//document.addEventListener('readystatechange', onDocumentReadyStateChange);
@@ -811,10 +982,56 @@
 			window.removeEventListener('load', onLoad);
 		};
 		
+		// New tab opening
+		
+		function handleClicks() {
+			$(element).contents().find('body').off('click', onBodyClick);
+			$(element).contents().find('body').click(onBodyClick);
+		}
+		
+		function onBodyClick(evt) {
+			console.log('body click ', evt.which);
+			
+			if((evt.which == 1 && evt.ctrlKey) ||
+			   evt.which == 2) {
+				evt.stopPropagation();
+				evt.preventDefault();
+
+				var link = evt.target;
+				
+				if(link.tagName != "a") {
+					
+					var closestLink = $(link).closest('a');
+					
+					if(closestLink.length > 0) {
+						link = closestLink[0];
+					} else {
+						link = null;
+					}
+					
+				}
+				
+				if(link && link.href) {
+
+					var afterTab = $scope.tab;
+
+					if($scope.tab.lastChildrenTab) {
+						afterTab = $scope.tab.lastChildrenTab;
+					}
+
+					$scope.$parent.$parent.openTab($scope.tab, afterTab, link.href, evt.shiftKey);
+				}
+				
+				return false;
+			}
+		}
 		
 		// Startup page
 		
-		$scope.$parent.$parent.openUrl($scope.tab, $scope.tab.urlInput);
+		if($scope.tab.urlInput) {
+			$scope.tab.loading = true;
+			$scope.$parent.$parent.openUrl($scope.tab, $scope.tab.urlInput);
+		}
 		
 	});
     
@@ -829,6 +1046,24 @@
 		var element = $element[0];
 		$scope.tab = $scope.$parent.tab;
 		$scope.tab.tabElement = $(element);
+		
+		$(element).click(function(evt) {
+			if(evt.which == 2 && !$scope.tab.pinned) {
+				$scope.$parent.$parent.closeTab($scope.tab);
+			}
+		});
+		
+		$(element).on('contextmenu', function(evt) {
+			tabMenuTarget = $scope.tab;
+			
+			if($scope.tab.pinned) {
+				tabMenuPinItem.label = 'Relâcher';
+			} else {
+				tabMenuPinItem.label = 'Epingler';
+			}
+			
+			tabMenu.popup(evt.pageX, evt.pageY);
+		});
 		
 	});
 	

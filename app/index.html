@@ -30,7 +30,11 @@
 					<img class="tab-favicon" src="{{ tab.favicon }}" />
 					<div class="loading-animation" ng-class="{hidden: !tab.loading}"></div>
 				</div>
-				<div class="title">{{ tab.title }}</div>
+				<div class="title">
+					<span ng-if="tab.title">{{ tab.title }}</span>
+					<span ng-if="!tab.title && !tab.loading">Nouvel Onglet</span>
+					<span ng-if="!tab.title && tab.loading">Chargement...</span>
+				</div>
 				<a class="btn icon close" ng-click="closeTab(tab);" if="tabs.length > 1"><i class="fa fa-times-circle"></i></a>
 			</div>
 			<a class="btn icon" ng-click="addTab();">
@@ -59,7 +63,7 @@
 		<div class="browser--content">
 
 			<div class="browser--frame">
-				<iframe class="webpage" ng-repeat="tab in tabs" ng-controller="CWebPage" nwdisable nwfaketop nwUserAgent="Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Nux/1.0" src="{{ tab.url }}" ng-class="{current: tab === currentTab}"></iframe>
+				<iframe class="webpage" ng-repeat="tab in tabs" ng-controller="CWebPage" nwdisable nwfaketop nwUserAgent="{{ userAgent }}" src="{{ tab.url }}" ng-class="{current: tab === currentTab}"></iframe>
 			</div>
 
 			<div class="browser--launchpad hidden">

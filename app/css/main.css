@@ -200,14 +200,10 @@ a {
 	height: 100%;
 	border: none;
 	visibility: hidden;
-	opacity: 0;
-	transition: opacity 0.1s, visibility 0.1s;
 }
 
 .browser--frame iframe.current {
 	visibility: visible;
-	opacity: 1;
-	transition: opacity 0.1s, visibility 0;
 }
 
 /* Loading animation */
@@ -215,6 +211,7 @@ a {
 @-webkit-keyframes loadingAnimation {
 	from { 
 		transform: scale(0);
+		opacity: 0.5;
 	}
 	to {
 		transform: scale(1);
@@ -228,7 +225,7 @@ a {
 	height: 32px;
 	background: #666;
 	border-radius: 100%;
-	-webkit-animation: loadingAnimation 0.8s ease-out infinite;
+	-webkit-animation: loadingAnimation 1.5s ease-out infinite;
 }
 
 .browser--favicon .loading-animation {
