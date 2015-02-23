@@ -1,0 +1,17 @@
+{
+	"name": "nux",
+	"main": "app/index.html",
+	"description": "web browser made with node-webkit",
+	"version": "0.1.0",
+	"keywords": ["web", "browser", "node-webkit"],
+	"window": {
+		"title": "Nux",
+		"toolbar": false,
+		"frame": false,
+		"width": 800,
+		"height": 600
+	},
+	"webkit": {
+		"plugin": true
+	}
+}

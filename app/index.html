@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html ng-app="browser" lang="fr">
+
+<head>
+	<meta charset="utf-8" />
+	<title>NW Browser</title>
+	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
+	<link rel="stylesheet" type="text/css" href="css/main.css" />
+</head>
+
+<body>
+
+	<div class="browser--main-ui hidden" ng-class="{maximized: windowIsMaximized, focus: windowHasFocus}" ng-controller="CMainUi">
+	
+		<div class="window--title-bar" ng-controller="CWindowTitleBar"></div>
+		
+		<div class="window--controls">
+			<a class="btn icon app-dev" ng-click="openAppDevTools();"><i class="fa fa-wrench"></i></a>
+			<a class="btn icon reload" ng-click="reloadWindow();"><i class="fa fa-refresh"></i></a>
+			<a class="btn icon minimize" ng-click="minimizeWindow();"><i class="fa fa-chevron-down"></i></a>
+			<a class="btn icon maximize" ng-click="maximizeWindow();"><i class="fa fa-chevron-up"></i></a>
+			<a class="btn icon close" ng-click="closeWindow();"><i class="fa fa-times"></i></a>
+		</div>
+
+		<div class="browser--tab-bar">
+			<div class="border"></div>
+			<div class="browser--tab" ng-repeat="tab in tabs" ng-class="{selected:currentTab === tab, pinned: tab.pinned}" ng-click="selectTab(tab)" title="{{ tab.title }}" ng-controller="CTab">
+				<div class="browser--favicon" ng-class="{'no-favicon': !tab.favicon}">
+					<i class="fa fa-globe no-favicon"></i>
+					<img class="tab-favicon" src="{{ tab.favicon }}" />
+					<div class="loading-animation" ng-class="{hidden: !tab.loading}"></div>
+				</div>
+				<div class="title">{{ tab.title }}</div>
+				<a class="btn icon close" ng-click="closeTab(tab);" if="tabs.length > 1"><i class="fa fa-times-circle"></i></a>
+			</div>
+			<a class="btn icon" ng-click="addTab();">
+				<i class="fa fa-plus"></i>
+			</a>
+		</div>
+
+		<div class="browser--toolbar main">
+			<a class="btn icon" ng-click="back();"><i class="fa fa-arrow-left"></i></a>
+			<a class="btn icon" ng-click="forward();"><i class="fa fa-arrow-right"></i></a>
+			<a class="btn icon" ng-click="refresh();"><i class="fa fa-refresh"></i></a>
+			<a class="browser--favicon btn icon" id="favicon" ng-class="{'no-favicon': !currentTab.favicon}">
+				<i class="fa fa-globe"></i>
+				<img id="faviconImg" src="{{ currentTab.favicon }}" />
+				<div class="loading-animation" ng-class="{hidden: !currentTab.loading}"></div>
+			</a>
+			<span class="browser--adress-bar extends">
+				<input id="urlInput" class="browser--url-input hidden" placeholder="Entrez une adresse ou des termes de recherche..." ng-model="currentTab.urlInput"/>
+				<span id="urlInputFake" class="browser--adress-bar-fake">
+					<span class="dim">{{ currentTab.fakeUrl.prefix }}</span><span>{{ currentTab.fakeUrl.domain }}</span><span class="dim">{{ currentTab.fakeUrl.suffix }}</span>
+			</span>
+			</span>
+			<a class="btn icon" ng-click="bookmark();"><i class="fa" ng-class="{'fa-star':currentTab.bookmarked, 'fa-star-o':!currentTab.bookmarked}"></i></a>
+		</div>
+
+		<div class="browser--content">
+
+			<div class="browser--frame">
+				<iframe class="webpage" ng-repeat="tab in tabs" ng-controller="CWebPage" nwdisable nwfaketop nwUserAgent="Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Nux/1.0" src="{{ tab.url }}" ng-class="{current: tab === currentTab}"></iframe>
+			</div>
+
+			<div class="browser--launchpad hidden">
+				<div class="close-zone" ng-click="closeLaunchpad();"><i class="fa fa-chevron-up"></i>
+				</div>
+				<div class="content">
+					<h1>
+					<span class="title"><i class="fa fa-star"></i>Favoris</span>
+					<a class="more"><i class="fa fa-angle-down"></i></a>
+				</h1>
+					<div class="browser--favorites box links">
+						<a ng-repeat="link in favorites | orderBy:'index' track by $index" class="btn" ng-click="openUrl(currentTab,  link.url);" title="{{ link.label + ' - ' + link.url }}">
+							<span class="favicon"><i class="fa fa-globe" ng-if="!link.favicon"></i><img src="{{ link.favicon }}" ng-if="link.favicon"/></span>
+							<span class="label">{{ link.label }}</span>
+						</a>
+					</div>
+					<h1>
+					<span class="title"><i class="fa fa-clock-o"></i>Historique</span>
+					<a class="more"><i class="fa fa-angle-down"></i></a>
+					<a class="clear" ng-click="historyClearAll();"><i class="fa fa-trash"></i></a>
+				</h1>
+					<div class="browser--history box links">
+						<a ng-repeat="link in history | orderBy:'-index' | limitTo: 16 track by $index" class="btn" ng-click="openUrl(currentTab, link.url);" title="{{ link.label + ' - ' + link.url + '  - ' }}{{ link.date | date:'shortDate' }}">
+							<span class="favicon"><i class="fa fa-globe" ng-if="!link.favicon"></i><img src="{{ link.favicon }}" ng-if="link.favicon"/></span>
+							<span class="label">
+							{{ link.label }}
+							<span class="date info">{{ link.date | date:'shortDate' }}</span>
+							</span>
+						</a>
+					</div>
+					<h1>
+					<span class="title"><i class="fa fa-download"></i>Téléchargements</span>
+					<a class="more"><i class="fa fa-angle-down"></i></a>
+				</h1>
+					<div class="browser--downloads box files">
+						<a ng-repeat="file in downloads track by $index" class="btn" ng-class="{progress: file.progress}">
+							<span class="favicon"><i class="fa" ng-class="{'fa-arrow-down': file.progress, 'fa-file-o': !file.progress}"></i></span>
+							<span class="label">{{ file.name }}</span>
+							<span class="time info" ng-if="file.time">{{ file.time }}</span>
+							<div class="progress-bar" ng-if="file.progress">
+								<div class="bar" style="width: {{ file.progress * 100 }}%;"></div>
+							</div>
+						</a>
+					</div>
+				</div>
+				<div class="browser--toolbar bottom-bar">
+					<div class="extends"></div>
+					<a class="btn icon" ng-click="showSource();" title="Afficher la source"><i class="fa fa-code"></i></a>
+					<a class="btn icon" ng-click="openDevTools();" title="Outils de développement"><i class="fa fa-wrench"></i></a>
+					<div class="separator"></div>
+					<a class="btn icon" ng-click="addons();" title="Extensions"><i class="fa fa-puzzle-piece"></i></a>
+					<a class="btn icon" ng-click="help();" title="Aide"><i class="fa fa-question"></i></a>
+					<a class="btn icon" ng-click="settings();" title="Préférences"><i class="fa fa-cog"></i></a>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+	<script src="js/lib/jquery-2.1.3.js"></script>
+	<script src="js/lib/jquery-hotkeys.js"></script>
+	<script src="js/lib/angular.js"></script>
+	<script src="i18n/angular-locale_fr-fr.js"></script>
+	<script src="js/lib/angular-ui-router.js"></script>
+	<script src="js/main.js"></script>
+</body>
+
+</html>
