@@ -215,11 +215,16 @@
 	
 	/* Controllers */
 	
+    
+    /// Title bar
 	
 	app.controller('CWindowTitleBar', function($scope) {
 		
 	});
-	
+    
+    
+    
+	/// Main UI
 	
 	app.controller('CMainUi', function($scope, $sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon) {
 		
@@ -748,6 +753,8 @@
 		
 	});
 	
+    
+    /// Web Page
 	
 	app.controller('CWebPage', function($scope, $element, $timeout) {	
 		
@@ -758,6 +765,8 @@
 		$scope.tab.iframeElement = $(element);
 		var window = element.contentWindow;
 		$scope.tab.window = window;
+        
+        console.log(element);
 		
 		// Load state management
 		
@@ -808,6 +817,10 @@
 		$scope.$parent.$parent.openUrl($scope.tab, $scope.tab.urlInput);
 		
 	});
+    
+    
+    
+    /// Tab
 		
 	app.controller('CTab', function($scope, $element, $timeout) {	
 		

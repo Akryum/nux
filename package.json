@@ -9,7 +9,8 @@
 		"toolbar": false,
 		"frame": false,
 		"width": 800,
-		"height": 600
+		"height": 600,
+        "show": false
 	},
 	"webkit": {
 		"plugin": true
