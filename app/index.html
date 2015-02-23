@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8" />
-	<title>NW Browser</title>
+	<title>Nux</title>
 	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
 	<link rel="stylesheet" type="text/css" href="css/main.css" />
 </head>
@@ -32,8 +32,8 @@
 				</div>
 				<div class="title">
 					<span ng-if="tab.title">{{ tab.title }}</span>
-					<span ng-if="!tab.title && !tab.loading">Nouvel Onglet</span>
-					<span ng-if="!tab.title && tab.loading">Chargement...</span>
+					<span ng-if="!tab.title && !tab.loading">New Tab</span>
+					<span ng-if="!tab.title && tab.loading">Loading...</span>
 				</div>
 				<a class="btn icon close" ng-click="closeTab(tab);" if="tabs.length > 1"><i class="fa fa-times-circle"></i></a>
 			</div>
@@ -71,7 +71,7 @@
 				</div>
 				<div class="content">
 					<h1>
-					<span class="title"><i class="fa fa-star"></i>Favoris</span>
+					<span class="title"><i class="fa fa-star"></i>Favorites</span>
 					<a class="more"><i class="fa fa-angle-down"></i></a>
 				</h1>
 					<div class="browser--favorites box links">
@@ -81,7 +81,7 @@
 						</a>
 					</div>
 					<h1>
-					<span class="title"><i class="fa fa-clock-o"></i>Historique</span>
+					<span class="title"><i class="fa fa-clock-o"></i>History</span>
 					<a class="more"><i class="fa fa-angle-down"></i></a>
 					<a class="clear" ng-click="historyClearAll();"><i class="fa fa-trash"></i></a>
 				</h1>
@@ -95,7 +95,7 @@
 						</a>
 					</div>
 					<h1>
-					<span class="title"><i class="fa fa-download"></i>Téléchargements</span>
+					<span class="title"><i class="fa fa-download"></i>Downloads</span>
 					<a class="more"><i class="fa fa-angle-down"></i></a>
 				</h1>
 					<div class="browser--downloads box files">
@@ -111,12 +111,12 @@
 				</div>
 				<div class="browser--toolbar bottom-bar">
 					<div class="extends"></div>
-					<a class="btn icon" ng-click="showSource();" title="Afficher la source"><i class="fa fa-code"></i></a>
-					<a class="btn icon" ng-click="openDevTools();" title="Outils de développement"><i class="fa fa-wrench"></i></a>
+					<a class="btn icon" ng-click="showSource();" title="Show source"><i class="fa fa-code"></i></a>
+					<a class="btn icon" ng-click="openDevTools();" title="Dev tools"><i class="fa fa-wrench"></i></a>
 					<div class="separator"></div>
-					<a class="btn icon" ng-click="addons();" title="Extensions"><i class="fa fa-puzzle-piece"></i></a>
-					<a class="btn icon" ng-click="help();" title="Aide"><i class="fa fa-question"></i></a>
-					<a class="btn icon" ng-click="settings();" title="Préférences"><i class="fa fa-cog"></i></a>
+					<a class="btn icon" ng-click="addons();" title="Addons"><i class="fa fa-puzzle-piece"></i></a>
+					<a class="btn icon" ng-click="help();" title="Help"><i class="fa fa-question"></i></a>
+					<a class="btn icon" ng-click="settings();" title="Settings"><i class="fa fa-cog"></i></a>
 				</div>
 			</div>
 		</div>

@@ -333,7 +333,7 @@
 			$timeout(function() {
 				tab.url = $sce.trustAsResourceUrl(url);
 				tab.urlInput = url;
-				tab.title = "Chargement...";
+				tab.title = "Loading...";
 
 				$scope.displayNoFavicon(tab);
 				
@@ -354,7 +354,6 @@
 				if (location && location.href != oldUrl) {
 					oldUrl = location.href;
 					oldTitle = $scope.currentTab.window.document.title;
-					console.log("location changed: " + oldUrl);
 
 					$timeout(function() {
 						$scope.updateAdressBar(location);
@@ -817,7 +816,7 @@
 		/* Tab Menu */
 		
 		tabMenu.append(new gui.MenuItem({
-			label: 'Actualiser',
+			label: 'Refresh',
 			click: function(evt) {
 				if(tabMenuTarget) {
 					$scope.refresh(tabMenuTarget);
@@ -826,7 +825,7 @@
 		}));
 		
 		tabMenu.append(tabMenuPinItem = new gui.MenuItem({ 
-			label: 'Epingler',
+			label: 'Pin',
 			click: function(evt) {
 				if(tabMenuTarget) {
 					if(tabMenuTarget.pinned) {
@@ -843,7 +842,7 @@
 		}));
 		
 		tabMenu.append(new gui.MenuItem({
-			label: 'Fermer',
+			label: 'Close',
 			click: function(evt) {
 				if(tabMenuTarget) {
 					$scope.closeTab(tabMenuTarget);
@@ -956,7 +955,7 @@
 				
 				if(document.readyState == "uninitialized" || document.readyState == "loading") {
 					$scope.tab.loading = true;
-					$scope.tab.title = "Chargement...";
+					$scope.tab.title = "Loading...";
 				} else {
 					$scope.tab.title = document.title;
 				}
@@ -1057,9 +1056,9 @@
 			tabMenuTarget = $scope.tab;
 			
 			if($scope.tab.pinned) {
-				tabMenuPinItem.label = 'Relâcher';
+				tabMenuPinItem.label = 'Unpin';
 			} else {
-				tabMenuPinItem.label = 'Epingler';
+				tabMenuPinItem.label = 'Pin';
 			}
 			
 			tabMenu.popup(evt.pageX, evt.pageY);
