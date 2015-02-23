@@ -3,13 +3,15 @@ The Open Javascript Web Browser
 
 A web browser written in html/css/javascript with awesome tools:
 
-- nw.js (node + Chromium Embedded)
+- nw.js (node.js + Chromium Embedded)
 - angular.js
 - brackets.io
 
+Current app status: alpha - unstable - dev
+
 ## Current features
 
-- Basic web browsing (Chromium engine)
+- Web browsing (Chromium renderer & V8 javascript engine)
 - Basic browser ui (back, forward & refresh)
 - Opening and closing tabs
 - Pinning tabs
@@ -19,8 +21,12 @@ A web browser written in html/css/javascript with awesome tools:
 - Auto-searching adress bar (try "wheather in Paris")
 - Page inspector
 - Very basic downloading (no status)
+- Basic plugins support (like Flash Player)
+- Custom window frame
 
 ## Important todo features
+
+These include (in no particular order):
 
 - Web page context menu
 - Settings
@@ -37,3 +43,14 @@ A web browser written in html/css/javascript with awesome tools:
 - Personnal assistant (notes, mails, alarms, places, maps, etc.)
 - Speed dial
 - Tab screenshots
+- Advanced plugins support (disable & update)
+- Search providers management (add/remove & default search engine)
+- Secured connection status (https)
+- Auto-update system
+- Crash recovery
+- Session saving
+- Password manager
+- Themes
+- Official website
+- Bug reporting tool/site
+- Community site/support
