@@ -29,6 +29,7 @@ Current app status: alpha - unstable - dev
 - Very basic downloading (no status)
 - Basic plugins support (like Flash Player)
 - Custom window frame
+- Some keyboard shortcuts
 
 ## Important todo features
 

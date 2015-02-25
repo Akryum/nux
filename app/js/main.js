@@ -1,5 +1,5 @@
 (function () {
-	'user strict';
+	'use strict';
 
 	var app = angular.module('browser', ['ui.router']);
 
@@ -11,16 +11,18 @@
     
     // Native menus
     
-    var menuTargetTab;
     
 	// Tab menu
 
 	var tabMenu = new gui.Menu(),
-		tabMenuPinItem;
+		tabMenuPinItem,
+        menuTargetTab;
     
-	// Favorite menu
+	// LaunchLink menu
 
-	var favoriteMenu = new gui.Menu();
+	var launchLinkMenu = new gui.Menu(),
+		menuTargetLaunchLink,
+		menuTargetLaunchLinkType;
 
 	/* Services */
 
@@ -101,19 +103,30 @@
 						tab.bookmarked = true;
 					});
 				} else {
-					$timeout(function () {
-						var index = bookmarks.indexOf(bookmark);
-						if (index != -1) {
-							bookmarks.splice(index, 1);
-						}
-						tab.bookmarked = false;
-					});
+					removeBookmark(bookmark);
+				}
+			};
+			
+			self.removeByUrl = function(url) {
+				var bookmark = self.getByUrl(url);
+				if(bookmark) {
+					removeBookmark(bookmark);
 				}
 			};
 
 			self.save = function () {
 				localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
 			};
+			
+			function removeBookmark(bookmark) {
+				$timeout(function () {
+					var index = bookmarks.indexOf(bookmark);
+					if (index != -1) {
+						bookmarks.splice(index, 1);
+					}
+					tab.bookmarked = false;
+				});
+			}
 		}
 
 		return new SBookmark();
@@ -141,6 +154,9 @@
 					item.date = new Date(item.date);
 					if (item.faviconUrl) {
 						item.favicon = $sce.trustAsUrl(item.faviconUrl);
+					}
+					if(!item.label) {
+						item.label = item.url;
 					}
 				});
 			}
@@ -512,12 +528,16 @@
 		/* Actions */
 
 		self.back = function () {
-			self.currentTab.window.history.back();
+			if(self.currentTab.window.history) {
+				self.currentTab.window.history.back();
+			}
 			self.closeLaunchpad();
 		};
 
 		self.forward = function () {
-			self.currentTab.window.history.forward();
+			if(self.currentTab.window.history) {
+				self.currentTab.window.history.forward();
+			}
 			self.closeLaunchpad();
 		};
 
@@ -530,39 +550,35 @@
 		};
 
 		self.openLaunchpad = function () {
-            $timeout(function(){
-                urlInputFocusState();
-                
-                self.launchpadOpened = true;
+			urlInputFocusState();
 
-                // Flash fix
-                if (self.currentTab.window) {
-                    var elems = self.currentTab.window.document.getElementsByTagName('embed');
-                    $.each(elems, function (key, elem) {
-                        elem.style.visibility = "hidden";
-                    });
-                }
-            });
+			self.launchpadOpened = true;
+
+			// Flash fix
+			if (self.currentTab.window) {
+				var elems = self.currentTab.window.document.getElementsByTagName('embed');
+				$.each(elems, function (key, elem) {
+					elem.style.visibility = "hidden";
+				});
+			}
 		};
 
 		self.closeLaunchpad = function () {
-            $timeout(function(){
-                urlInputBlurState();
-                
-                self.launchpadOpened = false;
+			urlInputBlurState();
 
-                // Flash fix
-                if (self.currentTab.window) {
-                    var elems = self.currentTab.window.document.getElementsByTagName('embed');
-                    $.each(elems, function (key, elem) {
-                        elem.style.visibility = "visible";
-                    });
-                }
-            });
+			self.launchpadOpened = false;
+
+			// Flash fix
+			if (self.currentTab.window) {
+				var elems = self.currentTab.window.document.getElementsByTagName('embed');
+				$.each(elems, function (key, elem) {
+					elem.style.visibility = "visible";
+				});
+			}
 		};
 
 		self.bookmark = function () {
-            if(!self.currentTab.special) {
+            if(!self.currentTab.special && self.currentTab.ready) {
                 SBookmark.toggle(self.currentTab);
             }
 		};
@@ -621,10 +637,6 @@
 			win.close();
 		};
 
-		/* Keyboard shortcuts */
-
-
-
 		/* Url input */
 
 		$('#urlInput').keyup(function (evt) {
@@ -643,14 +655,14 @@
 
 		var urlInputFocus = false;
 
-		$('#urlInput').click(function (evt) {
+		self.onUrlInputClick = function (evt) {
 			var e = $(evt.currentTarget);
 			if (!urlInputFocus) {
                 urlInputFocus = true;
                 self.openLaunchpad();
                 e.select();
 			}
-		});
+		};
         
         function urlInputFocusState() {
             $('#urlInput').removeClass('hidden');
@@ -704,9 +716,12 @@
         }
 
 		self.selectTab = function (tab) {
-			self.currentTab = tab;
-            self.updateAdressBar();
-			self.closeLaunchpad();
+			console.log('select tab', tab.urlInput);
+			if(tab) {
+				self.currentTab = tab;
+				self.updateAdressBar();
+				self.closeLaunchpad();
+			}
 		};
 
 		self.addTab = function (tab) {
@@ -727,7 +742,7 @@
 			self.selectTab(tab);
             if(emptyTab) {
                 self.openLaunchpad();
-                $('#urlInput').select();
+                $('#urlInput').focus();
             } else {
                 self.closeLaunchpad();
             }
@@ -784,11 +799,12 @@
 			if (self.tabs.length > 1) {
 				var index = self.tabs.indexOf(tab);
 				var i = index - 1;
-				if (index == 0) {
-					i = 1;
+				if (index == -1) {
+					i = 0;
 				}
 
 				if (tab == self.currentTab) {
+					console.log('samge -> select new tab');
 					$timeout(function () {
 						self.selectTab(self.tabs[i]);
 					});
@@ -900,6 +916,38 @@
 			}
 		}));
 
+		/* LaunchLink Menu */
+
+		launchLinkMenu.append(new gui.MenuItem({
+			label: 'Open in new tab',
+			click: function (evt) {
+				if (menuTargetLaunchLink) {
+					$timeout(function() {
+						self.addTab({
+							url: null,
+							urlInput: menuTargetLaunchLink.url,
+							fakeUrl: null,
+							favicon: null,
+							title: null,
+							bookmarked: false,
+							historyItem: null
+						});
+					});
+				}
+			}
+		}));
+		
+		launchLinkMenu.append(new gui.MenuItem({
+			label: 'Delete',
+			click: function (evt) {
+				if (menuTargetLaunchLink) {
+					if(menuTargetLaunchLinkType == "bookmark") {
+						SBookmark.removeByUrl(menuTargetLaunchLink.url);
+					}
+				}
+			}
+		}));
+
 		/* Window */
 
 		self.windowIsMaximized = false;
@@ -934,6 +982,71 @@
 			SHistory.save();
             savePinnedTabs();
 		});
+
+		/* Keyboard shortcuts */
+		
+		// Refresh
+		gui.App.registerGlobalHotKey(new gui.Shortcut({
+			key: "F5",
+			active: function () {
+				if(self.windowHasFocus) {
+					self.refresh();
+				}
+			},
+			failed: function (msg) {
+				console.log(msg);
+			}
+		}));
+		
+		// Focus address bar
+		gui.App.registerGlobalHotKey(new gui.Shortcut({
+			key: "Ctrl+L",
+			active: function () {
+				if(self.windowHasFocus) {
+					$timeout(function() {
+						self.openLaunchpad();
+						try {
+							$('#urlInput').select().focus();
+						} catch(e) {
+							console.error(e);
+						}
+					});
+				}
+			},
+			failed: function (msg) {
+				console.log(msg);
+			}
+		}));
+
+		// New Tab
+		gui.App.registerGlobalHotKey(new gui.Shortcut({
+			key: "Ctrl+T",
+			active: function () {
+				if(self.windowHasFocus) {
+					$timeout(function() {
+						self.addTab();
+					});
+				}
+			},
+			failed: function (msg) {
+				console.log(msg);
+			}
+		}));
+
+		// Close current tab
+		gui.App.registerGlobalHotKey(new gui.Shortcut({
+			key: "Ctrl+W",
+			active: function () {
+				if(self.windowHasFocus) {
+					$timeout(function() {
+						self.closeTab(self.currentTab);
+					});
+				}
+			},
+			failed: function (msg) {
+				console.log(msg);
+			}
+		}));
 
 		/* Pinned tabs */
 
@@ -991,10 +1104,9 @@
 
 		var oldState, oldDomain;
 
-		function onLoad() {
+		function onLoad() {			
 			tab.loading = false;
 			Browser.onTabLoad(tab);
-            oldState = null;
 		}
 
 		function onDocumentReadyStateChange() {
@@ -1005,6 +1117,8 @@
 					oldState = document.readyState;
 
 					if (document.readyState == "uninitialized" || document.readyState == "loading") {
+						// Loading
+						tab.ready = false;
 						tab.loading = true;
 						tab.title = "Loading...";
 						if (location.origin != oldDomain) {
@@ -1012,10 +1126,13 @@
 							tab.favicon = null;
 						}
 					} else if (document.readyState == "loaded" || document.readyState == "interactive" || document.readyState == "complete") {
-
+						// Ready
+						tab.imageMode = (window.document.contentType.indexOf("image") != -1);
+						tab.ready = true;
 						Browser.onTabDocumentReady(tab);
 
 						if (document.readyState == "complete") {
+							// Complete
 							tab.loading = false;
 							Browser.onTabLoad(tab);
 						}
@@ -1030,14 +1147,14 @@
 					handleClicks();
 				}
                 
-                if (document.readyState == "loaded" || document.readyState == "interactive" || document.readyState == "complete") {
+                if (tab.ready) {
                     tab.title = document.title;
                 }
 			}
 
 		}
 
-		setInterval(onDocumentReadyStateChange, 200);
+		setInterval(onDocumentReadyStateChange, 100);
 
 		$(element).load(onLoad);
 
@@ -1059,12 +1176,7 @@
 		}
 
 		function onBodyClick(evt) {
-			console.log('body click ', evt.which);
-
-			if ((evt.which == 1 && evt.ctrlKey) ||
-				evt.which == 2) {
-				evt.stopPropagation();
-				evt.preventDefault();
+			if (evt.which == 1 || evt.which == 2) {
 
 				var link = evt.target;
 
@@ -1080,7 +1192,9 @@
 
 				}
 
-				if (link && link.href) {
+				if (link && link.href && (evt.ctrlKey || evt.which == 2 || link.getAttribute('target') == '_blank')) {
+					evt.stopPropagation();
+					evt.preventDefault();
 
 					var afterTab = tab;
 
@@ -1089,9 +1203,10 @@
 					}
 
 					Browser.openTab(tab, afterTab, link.href, evt.shiftKey);
+					
+					return false;
 				}
 
-				return false;
 			}
 		}
 
@@ -1118,7 +1233,11 @@
 		var Browser = $scope.$parent.$parent.Browser;
 
 		$(element).click(function (evt) {
-			if (evt.which == 2 && !tab.pinned) {
+			if(evt.which == 1) {
+				$timeout(function() {
+					Browser.selectTab(tab);
+				});
+			} else if (evt.which == 2 && !tab.pinned) {
 				Browser.closeTab(tab);
 			}
 		});
@@ -1139,25 +1258,18 @@
     
     /// Favorite
     
-    app.controller('CFavoriteItem', function ($scope, $element, $timeout) {
+    app.controller('CBookmarkItem', function ($scope, $element, $timeout) {
 
 		var element = $element[0];
-		var tab = $scope.$parent.tab
-		$scope.tab = tab;
-		tab.tabElement = $(element);
+		var item = $scope.$parent.link;
 
 		var Browser = $scope.$parent.$parent.Browser;
         
         $(element).on('contextmenu', function (evt) {
-			menuTargetTab = tab;
-
-			if (tab.pinned) {
-				tabMenuPinItem.label = 'Unpin';
-			} else {
-				tabMenuPinItem.label = 'Pin';
-			}
-
-			tabMenu.popup(evt.pageX, evt.pageY);
+			menuTargetLaunchLink = item;
+			menuTargetLaunchLinkType = "bookmark";
+			
+			launchLinkMenu.popup(evt.pageX, evt.pageY);
 		});
         
     });
