@@ -2,58 +2,94 @@
 <html ng-app="browser" lang="fr">
 
 <head>
+    
 	<meta charset="utf-8" />
+    
 	<title>Nux</title>
+    
+    <!-- CSS -->
+    
 	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
 	<link rel="stylesheet" type="text/css" href="css/main.css" />
+    
 </head>
 
 <body>
+    
+    <!-- Main Ui -->
 
 	<div class="browser--main-ui hidden" ng-controller="CMainUi as Browser" ng-class="{maximized:Browser.windowIsMaximized, focus:Browser.windowHasFocus}">
+        
+        <!-- Title bar -->
 	
 		<div class="window--title-bar"></div>
+        
+        <!-- Window controls -->
 		
 		<div class="window--controls">
-			<a class="btn icon app-dev" ng-click="Browser.openAppDevTools();"><i class="fa fa-wrench"></i></a>
-			<a class="btn icon reload" ng-click="Browser.reloadWindow();"><i class="fa fa-refresh"></i></a>
+            <!-- Dev tools -->
+			<a class="btn icon app-dev" ng-if="Browser.dev" ng-click="Browser.openAppDevTools();"><i class="fa fa-wrench"></i></a>
+            <!-- Reload app -->
+			<a class="btn icon reload" ng-if="Browser.dev" ng-click="Browser.reloadWindow();"><i class="fa fa-refresh"></i></a>
+            <!-- Minimize -->
 			<a class="btn icon minimize" ng-click="Browser.minimizeWindow();"><i class="fa fa-chevron-down"></i></a>
+            <!-- Maximize -->
 			<a class="btn icon maximize" ng-click="Browser.maximizeWindow();"><i class="fa fa-chevron-up"></i></a>
+            <!-- Close -->
 			<a class="btn icon close" ng-click="Browser.closeWindow();"><i class="fa fa-times"></i></a>
 		</div>
+        
+        <!-- Tab bar -->
 
 		<div class="browser--tab-bar">
 			<div class="border"></div>
+            
+            <!-- Tabs -->
+            
 			<div class="browser--tab" ng-repeat="tab in Browser.tabs" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned}" ng-click="Browser.selectTab(tab)" title="{{ tab.title }}" ng-controller="CTab">
+                
+                <!-- Tab favicon -->
+                
 				<div class="browser--favicon" ng-class="{'no-favicon': !tab.favicon}">
 					<i class="fa fa-globe no-favicon"></i>
 					<img class="tab-favicon" src="{{ tab.favicon }}" />
 					<div class="loading-animation" ng-class="{hidden:!tab.loading}"></div>
 				</div>
+                
+                <!-- Tab label -->
+                
 				<div class="title">
 					<span ng-if="tab.title">{{ tab.title }}</span>
 					<span ng-if="!tab.title && !tab.loading">New Tab</span>
 					<span ng-if="!tab.title && tab.loading">Loading...</span>
 				</div>
+                
+                <!-- Tab close button -->
+                
 				<a class="btn icon close" ng-click="Browser.closeTab(tab);" if="Browser.tabs.length > 1"><i class="fa fa-times-circle"></i></a>
 			</div>
+            
+            <!-- New Tab button -->
+            
 			<a class="btn icon" ng-click="Browser.addTab();">
 				<i class="fa fa-plus"></i>
 			</a>
 		</div>
+        
+        <!-- Browser main toolbar -->
 
 		<div class="browser--toolbar main">
 			<a class="btn icon" ng-click="Browser.back();"><i class="fa fa-arrow-left"></i></a>
 			<a class="btn icon" ng-click="Browser.forward();"><i class="fa fa-arrow-right"></i></a>
 			<a class="btn icon" ng-click="Browser.refresh();"><i class="fa fa-refresh"></i></a>
 			<a class="browser--favicon btn icon" id="favicon" ng-class="{'no-favicon': !Browser.currentTab.favicon}">
-				<i class="fa fa-globe"></i>
+				<i class="fa" ng-class="{'fa-globe':!Browser.launchpadOpened, 'fa-search':Browser.launchpadOpened}"></i>
 				<img id="faviconImg" src="{{ Browser.currentTab.favicon }}" />
 				<div class="loading-animation" ng-class="{hidden: !Browser.currentTab.loading}"></div>
 			</a>
 			<span class="browser--adress-bar extends">
-				<input id="urlInput" class="browser--url-input hidden" placeholder="Entrez une adresse ou des termes de recherche..." ng-model="Browser.currentTab.urlInput"/>
-				<span id="urlInputFake" class="browser--adress-bar-fake">
+				<input id="urlInput" class="browser--url-input hidden" placeholder="{{ Browser.newTabPlaceholder }}" ng-model="Browser.currentTab.urlInput"/>
+				<span id="urlInputFake" class="browser--adress-bar-fake" ng-hide="Browser.launchpadOpened">
 					<span class="dim">{{ Browser.currentTab.fakeUrl.prefix }}</span><span>{{ Browser.currentTab.fakeUrl.domain }}</span><span class="dim">{{ Browser.currentTab.fakeUrl.suffix }}</span>
 			</span>
 			</span>
@@ -62,11 +98,11 @@
 
 		<div class="browser--content">
 
-			<div class="browser--frame">
+			<div class="browser--frame" ng-class="{dim:Browser.launchpadOpened}">
 				<iframe class="webpage" ng-repeat="tab in Browser.tabs" ng-controller="CWebPage" nwdisable nwfaketop nwUserAgent="{{ Browser.userAgent }}" src="{{ tab.url }}" ng-class="{current: tab === Browser.currentTab}"></iframe>
 			</div>
 
-			<div class="browser--launchpad hidden">
+			<div class="browser--launchpad" ng-class="{hidden:!Browser.launchpadOpened}">
 				<div class="close-zone" ng-click="Browser.closeLaunchpad();"><i class="fa fa-chevron-up"></i>
 				</div>
 				<div class="content">

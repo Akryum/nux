@@ -7,10 +7,20 @@
 
 	var gui = require('nw.gui');
 
+    var win = gui.Window.get();
+    
+    // Native menus
+    
+    var menuTargetTab;
+    
 	// Tab menu
 
 	var tabMenu = new gui.Menu(),
-		tabMenuPinItem, tabMenuTarget;
+		tabMenuPinItem;
+    
+	// Favorite menu
+
+	var favoriteMenu = new gui.Menu();
 
 	/* Services */
 
@@ -269,10 +279,19 @@
 	app.controller('CMainUi', function ($sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon, SPinnedTab) {
 
 		var self = this;
-
-		var win = gui.Window.get();
+        
+        self.dev = true;
 
 		self.userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0 Nux/0.1";
+        
+        //self.homePage = "https://duckduckgo.com/";
+        self.homePage = "special:home";
+        
+        self.searchUrl = "https://duckduckgo.com?q=";
+        
+        self.newTabPlaceholder = "Search the web or enter a website adress...";
+        
+        // Favorites
 
 		self.favorites = [];
 
@@ -281,6 +300,8 @@
 				self.favorites = list;
 			});
 		});
+        
+        // History
 
 		self.history = [];
 
@@ -289,6 +310,8 @@
 				self.history = list;
 			});
 		});
+        
+        // Downloads
 
 		self.downloads = [
 			{
@@ -303,38 +326,75 @@
 				name: "test-wode-webkit.zip"
             }
         ];
+        
+        // Tabs
 
 		self.tabs = [];
+        
+        // Basic browsing
 
 		self.openUrl = function (tab, url) {
-			if (url.indexOf("://") == -1 && url.indexOf(".") == -1) {
-				url = "https://duckduckgo.com?q=" + url;
-			}
+            if(url) {
+                if(url.indexOf("special:") == 0) {
+                    tab.special = true;
+                    
+                    url = url.replace("special:", "./pages/");
+                    url += ".html";
+                } else {
+                    tab.special = false;
+                
+                    if (url.indexOf("://") == -1 && url.indexOf(".") == -1) {
+                        url = self.searchUrl + url;
+                    }
 
-			if (url.indexOf('://') == -1) {
-				url = 'http://' + url;
-			}
-			console.log('open ' + url);
-			//$('#webpage').attr('src', url);
+                    if (url.indexOf('://') == -1) {
+                        url = 'http://' + url;
+                    }
+                    
+                }
+                
+                console.log('open ' + url);
+                //$('#webpage').attr('src', url);
 
-			$timeout(function () {
-				tab.url = $sce.trustAsResourceUrl(url);
-				tab.urlInput = url;
-				tab.title = "Loading...";
-                tab.loading = true;
-                tab.favicon = null;
+                $timeout(function () {
+                    tab.url = $sce.trustAsResourceUrl(url);
+                    tab.urlInput = url;
+                    tab.title = "Loading...";
+                    tab.loading = true;
+                    tab.favicon = null;
 
-				if (tab === self.currentTab) {
-					self.updateAdressFake(url);
-					self.closeLaunchpad();
-				}
-			});
+                    if (tab === self.currentTab) {
+                        self.updateAdressFake(url);
+                        self.closeLaunchpad();
+                    }
+                });
 
-			$('#urlInput').blur();
+                $('#urlInput').blur();
+            } else {
+                tab.special = true;
+            }
 		};
 
-		self.updateAdressBar = function (location) {
-			var url = location.href;
+		self.updateAdressBar = function () {
+			var url;
+            
+            console.log('special', self.currentTab.special);
+            
+            if(self.currentTab.special) {
+                url = null;
+                self.currentTab.fakeUrl = {
+					prefix: self.newTabPlaceholder
+				};
+            } else {
+                if(self.currentTab.window && self.currentTab.window.location) {
+                    url = self.currentTab.window.location.href;
+                }
+
+                if(!url) {
+                    url = self.currentTab.urlInput;
+                }
+            }
+            
 			self.currentTab.urlInput = url;
 			self.updateAdressFake(url);
 
@@ -342,15 +402,17 @@
 		};
 
 		self.updateAdressFake = function (url) {
-			var reg = /([a-z]+:\/\/)([a-z0-9_%.-]+)(\/?.*)/i;
-			url = url.match(reg);
-			if (url) {
-				self.currentTab.fakeUrl = {
-					prefix: url[1],
-					domain: url[2],
-					suffix: url[3]
-				};
-			}
+            if(url) {
+                var reg = /([a-z]+:\/\/)([a-z0-9_%.-]+)(\/?.*)/i;
+                url = url.match(reg);
+                if (url) {
+                    self.currentTab.fakeUrl = {
+                        prefix: url[1],
+                        domain: url[2],
+                        suffix: url[3]
+                    };
+                }
+            }
 		};
 
 		self.updateFavicon = function (tab) {
@@ -427,7 +489,7 @@
 				SNetwork.tryUrl(iconUrl, function () {
 					self.displayFavicon(tab, iconUrl);
 				}, function () {
-					self.displayNoFavicon(tab);
+					tab.favicon = null;
 				}, true);
 			}, true);
 
@@ -468,29 +530,35 @@
 		};
 
 		self.openLaunchpad = function () {
-			$('.browser--frame').addClass('dim');
-			$('.browser--launchpad').removeClass('hidden');
+            $timeout(function(){
+                urlInputFocusState();
+                
+                self.launchpadOpened = true;
 
-			// Flash fix
-			if (self.currentTab.window) {
-				var elems = self.currentTab.window.document.getElementsByTagName('embed');
-				$.each(elems, function (key, elem) {
-					elem.style.visibility = "hidden";
-				});
-			}
+                // Flash fix
+                if (self.currentTab.window) {
+                    var elems = self.currentTab.window.document.getElementsByTagName('embed');
+                    $.each(elems, function (key, elem) {
+                        elem.style.visibility = "hidden";
+                    });
+                }
+            });
 		};
 
 		self.closeLaunchpad = function () {
-			$('.browser--frame').removeClass('dim');
-			$('.browser--launchpad').addClass('hidden');
+            $timeout(function(){
+                urlInputBlurState();
+                
+                self.launchpadOpened = false;
 
-			// Flash fix
-			if (self.currentTab.window) {
-				var elems = self.currentTab.window.document.getElementsByTagName('embed');
-				$.each(elems, function (key, elem) {
-					elem.style.visibility = "visible";
-				});
-			}
+                // Flash fix
+                if (self.currentTab.window) {
+                    var elems = self.currentTab.window.document.getElementsByTagName('embed');
+                    $.each(elems, function (key, elem) {
+                        elem.style.visibility = "visible";
+                    });
+                }
+            });
 		};
 
 		self.bookmark = function () {
@@ -566,10 +634,7 @@
 				}
 				break;
 			case 27:
-				var window = $('#webpage').get(0).contentWindow;
-				if (window) {
-					self.updateAdressBar(window.location);
-				}
+                self.updateAdressBar();
 				break;
 			}
 		});
@@ -579,23 +644,34 @@
 		$('#urlInput').click(function (evt) {
 			var e = $(evt.currentTarget);
 			if (!urlInputFocus) {
-				urlInputFocus = true;
-				e.select();
+                urlInputFocus = true;
+                self.openLaunchpad();
+                e.select();
 			}
 		});
+        
+        function urlInputFocusState() {
+            $('#urlInput').removeClass('hidden');
+			$('#urlInputFake').addClass('hidden');
+        }
+        
+        function urlInputBlurState() {
+            urlInputFocus = false;
+            var urlInput = $('#urlInput');
+            urlInput[0].selectionStart = urlInput[0].selectionEnd = -1;
+            urlInput.addClass('hidden');
+            $('#urlInputFake').removeClass('hidden');
+        }
+            
 
 		$('#urlInput').focusin(function (evt) {
-			self.openLaunchpad();
-			$('#urlInput').removeClass('hidden');
-			$('#urlInputFake').addClass('hidden');
+			urlInputFocusState();
 		});
 
 		$('#urlInput').focusout(function (evt) {
-			urlInputFocus = false;
-			this.selectionStart = this.selectionEnd = -1;
-			self.updateAdressFake($('#urlInput').val());
-			$('#urlInput').addClass('hidden');
-			$('#urlInputFake').removeClass('hidden');
+            if(!self.launchpadOpened) {
+                urlInputBlurState();
+            }
 		});
 
 		/* Tabs */
@@ -613,37 +689,46 @@
 
 			$timeout(function () {
 				if (tab == self.currentTab) {
-					self.updateAdressBar(window.location);
+					self.updateAdressBar();
 				}
                 
-				tab.historyItem = SHistory.add(tab);
-				self.updateFavicon(tab);
+                if(tab.url && !tab.special) {
+                    if(!tab.pinned) {
+                        tab.historyItem = SHistory.add(tab);
+                    }
+                    self.updateFavicon(tab);
+                }
 			});
         }
 
 		self.selectTab = function (tab) {
 			self.currentTab = tab;
-			if (tab.window) {
-				self.updateAdressBar(tab.window.location);
-			}
+            self.updateAdressBar();
 			self.closeLaunchpad();
 		};
 
 		self.addTab = function (tab) {
-			if (tab == undefined) {
+            var emptyTab = (tab == undefined);
+			if (emptyTab) {
 				tab = {
 					url: null,
-					urlInput: 'duckduckgo.com',
+					urlInput: null,
 					fakeUrl: null,
 					favicon: null,
 					title: null,
 					bookmarked: false,
-					historyItem: null
+					historyItem: null,
+                    special: true
 				};
 			}
 			self.tabs.push(tab);
 			self.selectTab(tab);
-			self.closeLaunchpad();
+            if(emptyTab) {
+                self.openLaunchpad();
+                $('#urlInput').select();
+            } else {
+                self.closeLaunchpad();
+            }
 		};
 
 		self.openTab = function (sourceTab, afterTab, url, autoSelect) {
@@ -781,8 +866,8 @@
 		tabMenu.append(new gui.MenuItem({
 			label: 'Refresh',
 			click: function (evt) {
-				if (tabMenuTarget) {
-					self.refresh(tabMenuTarget);
+				if (menuTargetTab) {
+					self.refresh(menuTargetTab);
 				}
 			}
 		}));
@@ -790,11 +875,11 @@
 		tabMenu.append(tabMenuPinItem = new gui.MenuItem({
 			label: 'Pin',
 			click: function (evt) {
-				if (tabMenuTarget) {
-					if (tabMenuTarget.pinned) {
-						self.unpinTab(tabMenuTarget);
+				if (menuTargetTab) {
+					if (menuTargetTab.pinned) {
+						self.unpinTab(menuTargetTab);
 					} else {
-						self.pinTab(tabMenuTarget);
+						self.pinTab(menuTargetTab);
 					}
 				}
 			}
@@ -807,8 +892,8 @@
 		tabMenu.append(new gui.MenuItem({
 			label: 'Close',
 			click: function (evt) {
-				if (tabMenuTarget) {
-					self.closeTab(tabMenuTarget);
+				if (menuTargetTab) {
+					self.closeTab(menuTargetTab);
 				}
 			}
 		}));
@@ -866,7 +951,15 @@
 
 		/* Session restoration */
 
-		self.addTab();
+		self.addTab({
+            url: null,
+            urlInput: self.homePage,
+            fakeUrl: null,
+            favicon: null,
+            title: null,
+            bookmarked: false,
+            historyItem: null
+        });
 
 		// TODO
 
@@ -951,7 +1044,9 @@
 		tab.close = function () {
 			tab.tabElement.addClass('closed');
 			clearInterval(onDocumentReadyStateChange, 200);
-			window.removeEventListener('load', onLoad);
+            if(window) {
+                window.removeEventListener('load', onLoad);
+            }
 		};
 
 		// New tab opening
@@ -1013,8 +1108,6 @@
 
 	app.controller('CTab', function ($scope, $element, $timeout) {
 
-		// Element
-
 		var element = $element[0];
 		var tab = $scope.$parent.tab
 		$scope.tab = tab;
@@ -1029,7 +1122,7 @@
 		});
 
 		$(element).on('contextmenu', function (evt) {
-			tabMenuTarget = tab;
+			menuTargetTab = tab;
 
 			if (tab.pinned) {
 				tabMenuPinItem.label = 'Unpin';
@@ -1041,6 +1134,31 @@
 		});
 
 	});
+    
+    /// Favorite
+    
+    app.controller('CFavoriteItem', function ($scope, $element, $timeout) {
+
+		var element = $element[0];
+		var tab = $scope.$parent.tab
+		$scope.tab = tab;
+		tab.tabElement = $(element);
+
+		var Browser = $scope.$parent.$parent.Browser;
+        
+        $(element).on('contextmenu', function (evt) {
+			menuTargetTab = tab;
+
+			if (tab.pinned) {
+				tabMenuPinItem.label = 'Unpin';
+			} else {
+				tabMenuPinItem.label = 'Pin';
+			}
+
+			tabMenu.popup(evt.pageX, evt.pageY);
+		});
+        
+    });
 
 
 })();
