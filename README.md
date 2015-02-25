@@ -9,6 +9,12 @@ A web browser written in html/css/javascript with awesome tools:
 
 Current app status: alpha - unstable - dev
 
+## Screenshot
+
+![alt tag](http://bytevortex.net/nux/screenshots/nux.png)
+
+![alt tag](http://bytevortex.net/nux/screenshots/nux2.png)
+
 ## Current features
 
 - Web browsing (Chromium renderer & V8 javascript engine)
@@ -50,6 +56,7 @@ These include (in no particular order):
 - Crash recovery
 - Session saving
 - Password manager
+- Pinned tabs "blinking" when title changed
 - Themes
 - Official website
 - Bug reporting tool/site

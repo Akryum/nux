@@ -1039,7 +1039,7 @@
 
 		setInterval(onDocumentReadyStateChange, 200);
 
-		window.addEventListener('load', onLoad);
+		$(element).load(onLoad);
 
 		// Close
 
