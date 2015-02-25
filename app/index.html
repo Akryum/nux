@@ -10,64 +10,64 @@
 
 <body>
 
-	<div class="browser--main-ui hidden" ng-class="{maximized: windowIsMaximized, focus: windowHasFocus}" ng-controller="CMainUi">
+	<div class="browser--main-ui hidden" ng-controller="CMainUi as Browser" ng-class="{maximized:Browser.windowIsMaximized, focus:Browser.windowHasFocus}">
 	
-		<div class="window--title-bar" ng-controller="CWindowTitleBar"></div>
+		<div class="window--title-bar"></div>
 		
 		<div class="window--controls">
-			<a class="btn icon app-dev" ng-click="openAppDevTools();"><i class="fa fa-wrench"></i></a>
-			<a class="btn icon reload" ng-click="reloadWindow();"><i class="fa fa-refresh"></i></a>
-			<a class="btn icon minimize" ng-click="minimizeWindow();"><i class="fa fa-chevron-down"></i></a>
-			<a class="btn icon maximize" ng-click="maximizeWindow();"><i class="fa fa-chevron-up"></i></a>
-			<a class="btn icon close" ng-click="closeWindow();"><i class="fa fa-times"></i></a>
+			<a class="btn icon app-dev" ng-click="Browser.openAppDevTools();"><i class="fa fa-wrench"></i></a>
+			<a class="btn icon reload" ng-click="Browser.reloadWindow();"><i class="fa fa-refresh"></i></a>
+			<a class="btn icon minimize" ng-click="Browser.minimizeWindow();"><i class="fa fa-chevron-down"></i></a>
+			<a class="btn icon maximize" ng-click="Browser.maximizeWindow();"><i class="fa fa-chevron-up"></i></a>
+			<a class="btn icon close" ng-click="Browser.closeWindow();"><i class="fa fa-times"></i></a>
 		</div>
 
 		<div class="browser--tab-bar">
 			<div class="border"></div>
-			<div class="browser--tab" ng-repeat="tab in tabs" ng-class="{selected:currentTab === tab, pinned: tab.pinned}" ng-click="selectTab(tab)" title="{{ tab.title }}" ng-controller="CTab">
+			<div class="browser--tab" ng-repeat="tab in Browser.tabs" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned}" ng-click="Browser.selectTab(tab)" title="{{ tab.title }}" ng-controller="CTab">
 				<div class="browser--favicon" ng-class="{'no-favicon': !tab.favicon}">
 					<i class="fa fa-globe no-favicon"></i>
 					<img class="tab-favicon" src="{{ tab.favicon }}" />
-					<div class="loading-animation" ng-class="{hidden: !tab.loading}"></div>
+					<div class="loading-animation" ng-class="{hidden:!tab.loading}"></div>
 				</div>
 				<div class="title">
 					<span ng-if="tab.title">{{ tab.title }}</span>
 					<span ng-if="!tab.title && !tab.loading">New Tab</span>
 					<span ng-if="!tab.title && tab.loading">Loading...</span>
 				</div>
-				<a class="btn icon close" ng-click="closeTab(tab);" if="tabs.length > 1"><i class="fa fa-times-circle"></i></a>
+				<a class="btn icon close" ng-click="Browser.closeTab(tab);" if="Browser.tabs.length > 1"><i class="fa fa-times-circle"></i></a>
 			</div>
-			<a class="btn icon" ng-click="addTab();">
+			<a class="btn icon" ng-click="Browser.addTab();">
 				<i class="fa fa-plus"></i>
 			</a>
 		</div>
 
 		<div class="browser--toolbar main">
-			<a class="btn icon" ng-click="back();"><i class="fa fa-arrow-left"></i></a>
-			<a class="btn icon" ng-click="forward();"><i class="fa fa-arrow-right"></i></a>
-			<a class="btn icon" ng-click="refresh();"><i class="fa fa-refresh"></i></a>
-			<a class="browser--favicon btn icon" id="favicon" ng-class="{'no-favicon': !currentTab.favicon}">
+			<a class="btn icon" ng-click="Browser.back();"><i class="fa fa-arrow-left"></i></a>
+			<a class="btn icon" ng-click="Browser.forward();"><i class="fa fa-arrow-right"></i></a>
+			<a class="btn icon" ng-click="Browser.refresh();"><i class="fa fa-refresh"></i></a>
+			<a class="browser--favicon btn icon" id="favicon" ng-class="{'no-favicon': !Browser.currentTab.favicon}">
 				<i class="fa fa-globe"></i>
-				<img id="faviconImg" src="{{ currentTab.favicon }}" />
-				<div class="loading-animation" ng-class="{hidden: !currentTab.loading}"></div>
+				<img id="faviconImg" src="{{ Browser.currentTab.favicon }}" />
+				<div class="loading-animation" ng-class="{hidden: !Browser.currentTab.loading}"></div>
 			</a>
 			<span class="browser--adress-bar extends">
-				<input id="urlInput" class="browser--url-input hidden" placeholder="Entrez une adresse ou des termes de recherche..." ng-model="currentTab.urlInput"/>
+				<input id="urlInput" class="browser--url-input hidden" placeholder="Entrez une adresse ou des termes de recherche..." ng-model="Browser.currentTab.urlInput"/>
 				<span id="urlInputFake" class="browser--adress-bar-fake">
-					<span class="dim">{{ currentTab.fakeUrl.prefix }}</span><span>{{ currentTab.fakeUrl.domain }}</span><span class="dim">{{ currentTab.fakeUrl.suffix }}</span>
+					<span class="dim">{{ Browser.currentTab.fakeUrl.prefix }}</span><span>{{ Browser.currentTab.fakeUrl.domain }}</span><span class="dim">{{ Browser.currentTab.fakeUrl.suffix }}</span>
 			</span>
 			</span>
-			<a class="btn icon" ng-click="bookmark();"><i class="fa" ng-class="{'fa-star':currentTab.bookmarked, 'fa-star-o':!currentTab.bookmarked}"></i></a>
+			<a class="btn icon" ng-click="Browser.bookmark();"><i class="fa" ng-class="{'fa-star':Browser.currentTab.bookmarked, 'fa-star-o':!Browser.currentTab.bookmarked}"></i></a>
 		</div>
 
 		<div class="browser--content">
 
 			<div class="browser--frame">
-				<iframe class="webpage" ng-repeat="tab in tabs" ng-controller="CWebPage" nwdisable nwfaketop nwUserAgent="{{ userAgent }}" src="{{ tab.url }}" ng-class="{current: tab === currentTab}"></iframe>
+				<iframe class="webpage" ng-repeat="tab in Browser.tabs" ng-controller="CWebPage" nwdisable nwfaketop nwUserAgent="{{ Browser.userAgent }}" src="{{ tab.url }}" ng-class="{current: tab === Browser.currentTab}"></iframe>
 			</div>
 
 			<div class="browser--launchpad hidden">
-				<div class="close-zone" ng-click="closeLaunchpad();"><i class="fa fa-chevron-up"></i>
+				<div class="close-zone" ng-click="Browser.closeLaunchpad();"><i class="fa fa-chevron-up"></i>
 				</div>
 				<div class="content">
 					<h1>
@@ -75,7 +75,7 @@
 					<a class="more"><i class="fa fa-angle-down"></i></a>
 				</h1>
 					<div class="browser--favorites box links">
-						<a ng-repeat="link in favorites | orderBy:'index' track by $index" class="btn" ng-click="openUrl(currentTab,  link.url);" title="{{ link.label + ' - ' + link.url }}">
+						<a ng-repeat="link in Browser.favorites | orderBy:'index' track by $index" class="btn" ng-click="Browser.openUrl(Browser.currentTab,  link.url);" title="{{ link.label + ' - ' + link.url }}">
 							<span class="favicon"><i class="fa fa-globe" ng-if="!link.favicon"></i><img src="{{ link.favicon }}" ng-if="link.favicon"/></span>
 							<span class="label">{{ link.label }}</span>
 						</a>
@@ -83,10 +83,10 @@
 					<h1>
 					<span class="title"><i class="fa fa-clock-o"></i>History</span>
 					<a class="more"><i class="fa fa-angle-down"></i></a>
-					<a class="clear" ng-click="historyClearAll();"><i class="fa fa-trash"></i></a>
+					<a class="clear" ng-click="Browser.historyClearAll();"><i class="fa fa-trash"></i></a>
 				</h1>
 					<div class="browser--history box links">
-						<a ng-repeat="link in history | orderBy:'-index' | limitTo: 16 track by $index" class="btn" ng-click="openUrl(currentTab, link.url);" title="{{ link.label + ' - ' + link.url + '  - ' }}{{ link.date | date:'shortDate' }}">
+						<a ng-repeat="link in Browser.history | orderBy:'-index' | limitTo: 16 track by $index" class="btn" ng-click="Browser.openUrl(Browser.currentTab, link.url);" title="{{ link.label + ' - ' + link.url + '  - ' }}{{ link.date | date:'shortDate' }}">
 							<span class="favicon"><i class="fa fa-globe" ng-if="!link.favicon"></i><img src="{{ link.favicon }}" ng-if="link.favicon"/></span>
 							<span class="label">
 							{{ link.label }}
@@ -99,7 +99,7 @@
 					<a class="more"><i class="fa fa-angle-down"></i></a>
 				</h1>
 					<div class="browser--downloads box files">
-						<a ng-repeat="file in downloads track by $index" class="btn" ng-class="{progress: file.progress}">
+						<a ng-repeat="file in Browser.downloads track by $index" class="btn" ng-class="{progress: file.progress}">
 							<span class="favicon"><i class="fa" ng-class="{'fa-arrow-down': file.progress, 'fa-file-o': !file.progress}"></i></span>
 							<span class="label">{{ file.name }}</span>
 							<span class="time info" ng-if="file.time">{{ file.time }}</span>
@@ -111,12 +111,12 @@
 				</div>
 				<div class="browser--toolbar bottom-bar">
 					<div class="extends"></div>
-					<a class="btn icon" ng-click="showSource();" title="Show source"><i class="fa fa-code"></i></a>
-					<a class="btn icon" ng-click="openDevTools();" title="Dev tools"><i class="fa fa-wrench"></i></a>
+					<a class="btn icon" ng-click="Browser.showSource();" title="Show source"><i class="fa fa-code"></i></a>
+					<a class="btn icon" ng-click="Browser.openDevTools();" title="Dev tools"><i class="fa fa-wrench"></i></a>
 					<div class="separator"></div>
-					<a class="btn icon" ng-click="addons();" title="Addons"><i class="fa fa-puzzle-piece"></i></a>
-					<a class="btn icon" ng-click="help();" title="Help"><i class="fa fa-question"></i></a>
-					<a class="btn icon" ng-click="settings();" title="Settings"><i class="fa fa-cog"></i></a>
+					<a class="btn icon" ng-click="Browser.addons();" title="Addons"><i class="fa fa-puzzle-piece"></i></a>
+					<a class="btn icon" ng-click="Browser.help();" title="Help"><i class="fa fa-question"></i></a>
+					<a class="btn icon" ng-click="Browser.settings();" title="Settings"><i class="fa fa-cog"></i></a>
 				</div>
 			</div>
 		</div>
