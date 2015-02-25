@@ -289,7 +289,7 @@
         
         self.searchUrl = "https://duckduckgo.com?q=";
         
-        self.newTabPlaceholder = "Search the web or enter a website adress...";
+        self.newTabPlaceholder = "Search the web or enter a website address...";
         
         // Favorites
 
@@ -562,7 +562,9 @@
 		};
 
 		self.bookmark = function () {
-			SBookmark.toggle(self.currentTab);
+            if(!self.currentTab.special) {
+                SBookmark.toggle(self.currentTab);
+            }
 		};
 
 		self.historyClearAll = SHistory.clearAll;
