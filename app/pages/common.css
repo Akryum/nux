@@ -22,6 +22,15 @@ p.hero {
     font-size: 1.5em;
 }
 
+.logo {
+    display: block;
+    margin: 42px auto;
+}
+
+.logo.dim {
+    opacity: 0.1;
+}
+
 hr {
     border: none;
     border-bottom: solid 1px #e8e8e8;

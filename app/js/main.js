@@ -286,6 +286,13 @@
 	app.service('STabSession', function () {
 		return new TabStorageService('tabs', false);
 	});
+    
+    app.service('SDynamicStyling', function() {
+        var SDynamicStyling = function() {
+            var self = this;
+            
+        };
+    });
 
 	/* Filters */
 
@@ -1138,6 +1145,11 @@
 			tab.loading = false;
 			Browser.onTabLoad(tab);
 		}
+        
+        function onUnload() {
+            console.log('unload');
+            tab.loading = true;
+        }
 
 		function onDocumentReadyStateChange() {
 			var document = window.document;
@@ -1160,12 +1172,6 @@
 						tab.imageMode = (window.document.contentType.indexOf("image") != -1);
 						tab.ready = true;
 						Browser.onTabDocumentReady(tab);
-
-						if (document.readyState == "complete") {
-							// Complete
-							tab.loading = false;
-							Browser.onTabLoad(tab);
-						}
 					}
 
 
@@ -1187,6 +1193,7 @@
 		setInterval(onDocumentReadyStateChange, 100);
 
 		$(element).load(onLoad);
+        $(window).unload(onUnload);
 
 		// Close
 

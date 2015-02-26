@@ -6,6 +6,7 @@
 	"keywords": ["web", "browser", "node-webkit"],
 	"window": {
 		"title": "Nux",
+        "icon": "icon.png",
 		"toolbar": false,
 		"frame": false,
 		"width": 800,
