@@ -241,43 +241,50 @@
 
 		return new SFavicon();
 	});
+    
+    var TabStorageService = function(storageId, savePinnedMode) {
+        var self = this;
 
-	app.service('SPinnedTab', function ($timeout, $sce) {
-		var SPinnedTab = function () {
-			var self = this;
+        var data = localStorage.getItem(storageId);
+        var savedTabs;
 
-			var data = localStorage.getItem('pinnedTabs');
-			var pinnedTabs;
+        if (!data) {
+            savedTabs = [];
+        } else {
+            savedTabs = JSON.parse(data);
+        }
 
-			if (!data) {
-				pinnedTabs = {};
-			} else {
-				pinnedTabs = JSON.parse(data);
-			}
+        self.getAll = function () {
+            return savedTabs;
+        }
 
-			self.getAll = function () {
-				return pinnedTabs;
-			}
+        self.setAll = function (tabs) {
+            savedTabs = [];
+            $.each(tabs, function (key, tab) {
+                if(!tab.pinned) {
+                    tab.pinned = false;
+                }
+                if (!tab.special && tab.pinned == savePinnedMode) {
+                    savedTabs.push({
+                        url: tab.urlInput,
+                        favicon: (tab.favicon ? tab.favicon.$$unwrapTrustedValue() : null)
+                    });
+                }
+            })
+            self.save();
+        }
 
-			self.setAll = function (tabs) {
-				pinnedTabs = [];
-				$.each(tabs, function (key, tab) {
-					if (tab.pinned) {
-						pinnedTabs.push({
-							url: tab.urlInput,
-							favicon: (tab.favicon ? tab.favicon.$$unwrapTrustedValue() : null)
-						});
-					}
-				})
-				self.save();
-			}
+        self.save = function () {
+            localStorage.setItem(storageId, JSON.stringify(savedTabs));
+        };
+    };
 
-			self.save = function () {
-				localStorage.setItem('pinnedTabs', JSON.stringify(pinnedTabs));
-			};
-		}
+	app.service('SPinnedTab', function () {
+		return new TabStorageService('pinnedTabs', true);
+	});
 
-		return new SPinnedTab();
+	app.service('STabSession', function () {
+		return new TabStorageService('tabs', false);
 	});
 
 	/* Filters */
@@ -292,7 +299,7 @@
 
 	/// Main UI
 
-	app.controller('CMainUi', function ($sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon, SPinnedTab) {
+	app.controller('CMainUi', function ($sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon, SPinnedTab, STabSession) {
 
 		var self = this;
         
@@ -460,7 +467,7 @@
 						}
 					});
 
-					if (iconUrl && iconUrl.charAt(0) == '/') {
+					if (iconUrl && (iconUrl.charAt(0) == '/' || iconUrl.indexOf('./') == 0)) {
 						iconUrl = window.location.origin + iconUrl;
 					}
 
@@ -807,7 +814,7 @@
 					console.log('samge -> select new tab');
 					$timeout(function () {
 						self.selectTab(self.tabs[i]);
-					});
+					}, 10);
 				}
 
 				tab.close();
@@ -819,25 +826,27 @@
 		};
 
 		self.pinTab = function (tab) {
-			$timeout(function () {
-				var index = self.tabs.indexOf(tab);
-				if (index != -1) {
-					self.tabs.splice(index, 1);
-				}
+            if(!tab.special) {
+                $timeout(function () {
+                    var index = self.tabs.indexOf(tab);
+                    if (index != -1) {
+                        self.tabs.splice(index, 1);
+                    }
 
-				index = 0;
-				var l = self.tabs.length;
-				for (var i = 0; i < l; i++) {
-					if (self.tabs[i].pinned) {
-						index = i + 1;
-					}
-				}
+                    index = 0;
+                    var l = self.tabs.length;
+                    for (var i = 0; i < l; i++) {
+                        if (self.tabs[i].pinned) {
+                            index = i + 1;
+                        }
+                    }
 
-				self.tabs.splice(index, 0, tab);
-				tab.pinned = true;
-                
-                savePinnedTabs();
-			});
+                    self.tabs.splice(index, 0, tab);
+                    tab.pinned = true;
+
+                    savePinnedTabs();
+                });
+            }
 		};
 
 		self.unpinTab = function (tab) {
@@ -876,8 +885,14 @@
         
         function savePinnedTabs() {
 			SPinnedTab.setAll(self.tabs);
-			SPinnedTab.save();
         }
+        
+        function saveTabSession() {
+            STabSession.setAll(self.tabs);
+        }
+        
+        // Auto tab saving
+        setInterval(saveTabSession, 5000);
 
 		/* Tab Menu */
 
@@ -981,6 +996,7 @@
 			SBookmark.save();
 			SHistory.save();
             savePinnedTabs();
+            saveTabSession();
 		});
 
 		/* Keyboard shortcuts */
@@ -1065,18 +1081,32 @@
 		});
 
 		/* Session restoration */
-
-		self.addTab({
-            url: null,
-            urlInput: self.homePage,
-            fakeUrl: null,
-            favicon: null,
-            title: null,
-            bookmarked: false,
-            historyItem: null
-        });
-
-		// TODO
+        
+        var tabSession = STabSession.getAll();
+        if(tabSession.length > 0) {
+            $.each(tabSession, function (key, tab) {
+                self.addTab({
+                    url: null,
+                    urlInput: tab.url,
+                    fakeUrl: null,
+                    favicon: (tab.favicon ? $sce.trustAsUrl(tab.favicon) : null),
+                    title: null,
+                    bookmarked: false,
+                    historyItem: null,
+                    pinned: false
+                });
+            });
+        } else {
+            self.addTab({
+                url: null,
+                urlInput: self.homePage,
+                fakeUrl: null,
+                favicon: null,
+                title: null,
+                bookmarked: false,
+                historyItem: null
+            });
+        }
 
 		/* Start animation */
 

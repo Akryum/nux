@@ -13,6 +13,8 @@
         "show": false
 	},
 	"webkit": {
-		"plugin": true
+		"plugin": true,
+        "java": true,
+        "page-cache": true
 	}
 }
