@@ -27,6 +27,8 @@
         <!-- Window controls -->
 		
 		<div class="window--controls">
+            <!-- Clear all data -->
+			<a class="btn icon app-clear" ng-if="Browser.dev" ng-click="Browser.clearAllData();"><i class="fa fa-trash"></i></a>
             <!-- Dev tools -->
 			<a class="btn icon app-dev" ng-if="Browser.dev" ng-click="Browser.openAppDevTools();"><i class="fa fa-wrench"></i></a>
             <!-- Reload app -->
@@ -154,7 +156,7 @@
 					</h1>
 					<!-- Items -->
 					<div class="browser--history box links">
-						<a ng-repeat="link in Browser.history | orderBy:'-index' | limitTo: 16 track by $index" class="btn" ng-click="Browser.openUrl(Browser.currentTab, link.url);" title="{{ link.label + ' - ' + link.url + '  - ' }}{{ link.date | date:'shortDate' }}">
+						<a ng-repeat="link in Browser.history | orderBy:'-created' | limitTo: 16 track by $index" class="btn" ng-click="Browser.openUrl(Browser.currentTab, link.url);" title="{{ link.label + ' - ' + link.url + '  - ' }}{{ link.created | date:'shortDate' }}">
 							<!-- Icon -->
 							<span class="favicon"><i class="fa fa-globe" ng-if="!link.favicon"></i><img src="{{ link.favicon }}" ng-if="link.favicon"/></span>
 							<!-- Label -->

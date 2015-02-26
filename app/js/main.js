@@ -49,6 +49,98 @@
 			}
 		};
 	});
+	
+	var LinkStorageService = function($timeout, $sce, storageId, options) {
+		var self = this;
+		
+		var defaultOptions = {
+			replaceRecent: false
+		};
+		
+		$.each(defaultOptions, function(key, value) {
+			if(!options[key]) {
+				options[key] = value;
+			}
+		});
+
+		var data = localStorage.getItem(storageId);
+		var storedLinks;
+
+		if (!data) {
+			storedLinks = [];
+		} else {
+			storedLinks = JSON.parse(data);
+
+			$.each(storedLinks, function (key, item) {
+				item.created = new Date(item.created);
+				
+				if (item.faviconUrl) {
+					item.favicon = $sce.trustAsUrl(item.faviconUrl);
+				}
+				
+				if(!item.label) {
+					item.label = item.url;
+				}
+			});
+		}
+
+		self.getAll = function (callback) {
+			callback.call(null, storedLinks);
+		};
+
+		self.add = function (tab) {
+			var item;
+			if(tab.ready && !tab.special && tab.urlInput != "about:blank") {
+				item = {
+					url: tab.urlInput,
+					label: (tab.title?tab.title:tab.urlInput),
+					favicon: tab.favicon,
+					faviconUrl: (tab.favicon ? tab.favicon.$$unwrapTrustedValue() : null),
+					created: new Date(),
+					index: (new Date()).getTime()
+				};
+				
+				var addItem = true;
+
+				if(options.replaceRecent) {
+					$.each(storedLinks, function (key, value) {
+						if (value && 
+							value.url == item.url && 
+							value.created.getDay() == item.created.getDay() &&
+							value.created.getMonth() == item.created.getMonth() &&
+							value.created.getYear() == item.created.getYear()
+						   ) {
+							addItem = false;
+							value.label = item.label;
+							value.favicon = item.favicon;
+							value.faviconUrl = item.faviconUrl;
+							value.created = item.created;
+						}
+					});
+				}
+				
+				$timeout(function () {
+					if(addItem) {
+						storedLinks.push(item);
+					}
+					self.save();
+				});
+			}
+			
+			return item;
+		};
+
+		self.save = function () {
+			localStorage.setItem(storageId, JSON.stringify(storedLinks));
+		};
+
+		self.clearAll = function () {
+			$timeout(function () {
+				while (storedLinks.pop());
+				self.save();
+			});
+		};
+	};
 
 	app.service('SBookmark', function ($timeout, $sce) {
 		var SBookmark = function () {
@@ -114,6 +206,13 @@
 				}
 			};
 
+			self.clearAll = function () {
+				$timeout(function () {
+					while (bookmarks.pop());
+					self.save();
+				});
+			};
+
 			self.save = function () {
 				localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
 			};
@@ -133,75 +232,13 @@
 	});
 
 	app.service('SHistory', function ($timeout, $sce) {
-		var SHistory = function () {
-			var self = this;
-
-			var data = localStorage.getItem('history');
-			var history;
-
-			if (!data) {
-				history = [];
-			} else {
-				data = JSON.parse(data);
-
-				history = [];
-
-				for (var x in data) {
-					history.push(data[x]);
-				}
-
-				$.each(history, function (key, item) {
-					item.date = new Date(item.date);
-					if (item.faviconUrl) {
-						item.favicon = $sce.trustAsUrl(item.faviconUrl);
-					}
-					if(!item.label) {
-						item.label = item.url;
-					}
-				});
+		return new LinkStorageService(
+			$timeout, $sce,
+			'history', 
+			{
+				replaceRecent: true
 			}
-
-			self.getAll = function (callback) {
-				callback.call(null, history);
-			};
-
-			self.add = function (tab) {
-				var item = {
-					url: tab.urlInput,
-					label: tab.title,
-					favicon: tab.favicon,
-					faviconUrl: (tab.favicon ? tab.favicon.$$unwrapTrustedValue() : null),
-					date: new Date(),
-					index: (new Date()).getTime()
-				};
-
-				$.each(history, function (key, value) {
-					if (value && ((value.url == item.url && value.date.getDay() == item.date.getDay() &&
-							value.date.getMonth() == item.date.getMonth() && value.date.getYear() == item.date.getYear()) || value.date.getTime() > item.date.getTime() - 1000)) {
-						history.splice(key, 1);
-					}
-				});
-
-				$timeout(function () {
-					history.push(item);
-					self.save();
-				});
-				return item;
-			};
-
-			self.save = function () {
-				localStorage.setItem('history', JSON.stringify(history));
-			};
-
-			self.clearAll = function () {
-				$timeout(function () {
-					while (history.pop());
-					self.save();
-				});
-			};
-		}
-
-		return new SHistory();
+		);
 	});
 
 	app.service('SFavicon', function ($timeout, $sce) {
@@ -364,45 +401,44 @@
         // Basic browsing
 
 		self.openUrl = function (tab, url) {
-            if(url) {
-                if(url.indexOf("special:") == 0) {
-                    tab.special = true;
-                    
-                    url = url.replace("special:", "./pages/");
-                    url += ".html";
-                } else {
-                    tab.special = false;
-                
-                    if (url.indexOf("://") == -1 && url.indexOf(".") == -1) {
-                        url = self.searchUrl + url;
-                    }
+			$timeout(function () {
+				if(url) {
+					if(url.indexOf("special:") == 0) {
+						tab.special = true;
 
-                    if (url.indexOf('://') == -1) {
-                        url = 'http://' + url;
-                    }
-                    
-                }
-                
-                console.log('open ' + url);
-                //$('#webpage').attr('src', url);
+						url = url.replace("special:", "./pages/");
+						url += ".html";
+					} else {
+						tab.special = false;
 
-                $timeout(function () {
-                    tab.url = $sce.trustAsResourceUrl(url);
-                    tab.urlInput = url;
-                    tab.title = "Loading...";
-                    tab.loading = true;
-                    tab.favicon = null;
+						if (url.indexOf("://") == -1 && url.indexOf(".") == -1) {
+							url = self.searchUrl + url;
+						}
 
-                    if (tab === self.currentTab) {
-                        self.updateAdressFake(url);
-                        self.closeLaunchpad();
-                    }
-                });
+						if (url.indexOf('://') == -1) {
+							url = 'http://' + url;
+						}
 
-                $('#urlInput').blur();
-            } else {
-                tab.special = true;
-            }
+					}
+
+					console.log('open ' + url);
+					
+					tab.url = $sce.trustAsResourceUrl(url);
+					tab.urlInput = url;
+					tab.title = "Loading...";
+					tab.loading = true;
+					tab.favicon = null;
+
+					if (tab === self.currentTab) {
+						self.updateAdressFake(url);
+						self.closeLaunchpad();
+					}
+
+					$('#urlInput').blur();
+				} else {
+					tab.special = true;
+				}
+            });
 		};
 
 		self.updateAdressBar = function () {
@@ -650,6 +686,16 @@
 		self.closeWindow = function () {
 			win.close();
 		};
+		
+		self.clearAllData = function () {
+			if(confirm("Reset the browser and clear all data (including bookmarks, history, etc.)?")) {
+				SHistory.clearAll();
+				SBookmark.clearAll();
+				SPinnedTab.setAll([]);
+				STabSession.setAll([]);
+				self.reloadWindow();
+			}
+		}
 
 		/* Url input */
 
@@ -701,6 +747,16 @@
                 urlInputBlurState();
             }
 		});
+		
+		self.getTypingSuggestions = function(input) {
+			var suggestions = [];
+			var reg = new RegExp(input, "ig");
+			$.each(self.favorites, function(key, item) {
+				if((item.url && item.url.match(reg)) || (item.label && item.label.match(reg))) {
+					suggestions.push(item);
+				}
+			});
+		};
 
 		/* Tabs */
 
@@ -1141,19 +1197,26 @@
 
 		var oldState, oldDomain;
 
-		function onLoad() {			
+		function onLoad() {		
+            console.log('loaded');	
 			tab.loading = false;
+			tab.ready = true;
 			Browser.onTabLoad(tab);
 		}
         
         function onUnload() {
-            console.log('unload');
+            console.log('unloaded');
             tab.loading = true;
+			tab.ready = false;
         }
 
 		function onDocumentReadyStateChange() {
 			var document = window.document;
 			if (document) {
+                if (tab.ready) {
+                    tab.title = document.title;
+                }
+				
 				if (document.readyState != oldState) {
 					console.log(tab.urlInput + ' ' + oldState + ' -> ' + document.readyState);
 					oldState = document.readyState;
@@ -1182,10 +1245,6 @@
 				if (body && body.length > 0) {
 					handleClicks();
 				}
-                
-                if (tab.ready) {
-                    tab.title = document.title;
-                }
 			}
 
 		}
@@ -1251,6 +1310,7 @@
 
 		if (tab.urlInput) {
 			tab.loading = true;
+			tab.ready = false;
 			Browser.openUrl(tab, tab.urlInput);
 		}
 
