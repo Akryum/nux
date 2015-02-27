@@ -454,7 +454,7 @@ a {
 	flex-direction: row;
 	justify-content: center;
 	align-items: center;
-	transition: all 0.3s;
+	transition: width 0.3s, opacity 0.3s, background-color 0.3s;
 	color: #888;
 	overflow: hidden;
 	box-sizing: border-box;
@@ -482,7 +482,6 @@ a {
 .browser--tab.closed {
 	width: 0 !important;
 	opacity: 0;
-	transition: width 0.3s, opacity 0.3s;
     pointer-events: none;
 }
 

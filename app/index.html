@@ -12,6 +12,16 @@
 	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
 	<link rel="stylesheet" type="text/css" href="css/main.css" />
     
+	<!-- Javascript -->
+    
+	<script src="js/lib/jquery-2.1.3.js"></script>
+	<script src="js/lib/jquery-hotkeys.js"></script>
+	<script src="js/lib/angular.js"></script>
+	<script src="i18n/angular-locale_fr-fr.js"></script>
+	<script src="js/lib/angular-ui-router.js"></script>
+    <script src="js/lib/winstate.js"></script>
+    
+	<script src="js/main.js"></script>
 </head>
 
 <body>
@@ -48,7 +58,7 @@
             
             <!-- Tabs -->
             
-			<div class="browser--tab" ng-repeat="tab in Browser.tabs" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned}" title="{{ tab.title }}" ng-controller="CTab">
+			<div class="browser--tab" ng-repeat="tab in Browser.tabs | orderBy:'index'" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned}" title="{{ tab.title }}" ng-controller="CTab">
                 
                 <!-- Tab favicon -->
                 
@@ -210,15 +220,6 @@
 		</div>
 
 	</div>
-
-	<!-- Javascript -->
-	<script src="js/lib/jquery-2.1.3.js"></script>
-	<script src="js/lib/jquery-hotkeys.js"></script>
-	<script src="js/lib/angular.js"></script>
-	<script src="i18n/angular-locale_fr-fr.js"></script>
-	<script src="js/lib/angular-ui-router.js"></script>
-    <script src="js/lib/winstate.js"></script>
-	<script src="js/main.js"></script>
 </body>
 
 </html>

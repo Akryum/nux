@@ -1,3 +1,7 @@
+console.log('nw.js', process.versions['node-webkit']);
+console.log('chromium', process.versions['chromium']);
+
+
 (function () {
 	'use strict';
 
@@ -97,7 +101,8 @@
 					favicon: tab.favicon,
 					faviconUrl: (tab.favicon ? tab.favicon.$$unwrapTrustedValue() : null),
 					created: new Date(),
-					index: (new Date()).getTime()
+					index: (new Date()).getTime(),
+                    count: 1
 				};
 				
 				var addItem = true;
@@ -115,6 +120,7 @@
 							value.favicon = item.favicon;
 							value.faviconUrl = item.faviconUrl;
 							value.created = item.created;
+                            value.count ++;
 						}
 					});
 				}
@@ -304,7 +310,8 @@
                 if (!tab.special && tab.pinned == savePinnedMode) {
                     savedTabs.push({
                         url: tab.urlInput,
-                        favicon: (tab.favicon ? tab.favicon.$$unwrapTrustedValue() : null)
+                        favicon: (tab.favicon ? tab.favicon.$$unwrapTrustedValue() : null),
+                        index: tab.index
                     });
                 }
             })
@@ -793,6 +800,39 @@
 				self.closeLaunchpad();
 			}
 		};
+        
+        function getNextTabIndex() {
+            var index = -1;
+            $.each(self.tabs, function(key, tab) {
+                if(tab.index > index) {
+                    index = tab.index;
+                }
+            });
+            return index +1;
+        }
+        
+        function getLastPinnedTabIndex() {
+            var index = -1;
+            $.each(self.tabs, function(key, tab) {
+                if(tab.pinned && tab.index > index) {
+                    index = tab.index;
+                }
+            });
+            return index;
+        }
+        
+        function insertTab(tab, index) {
+            $.each(self.tabs, function(key, t) {
+                if(t.index >= index) {
+                    t.index ++;
+                }
+            });
+            
+            tab.index = index;
+            if(self.tabs.indexOf(tab) == -1) {
+                self.tabs.push(tab);
+            }
+        }
 
 		self.addTab = function (tab) {
             var emptyTab = (tab == undefined);
@@ -808,7 +848,7 @@
                     special: true
 				};
 			}
-			self.tabs.push(tab);
+			insertTab(tab, getNextTabIndex());
 			self.selectTab(tab);
             if(emptyTab) {
                 self.openLaunchpad();
@@ -853,8 +893,8 @@
 
 				sourceTab.lastChildrenTab = tab;
 				tab.parentTab = sourceTab;
-
-				self.tabs.splice(index + 1, 0, tab);
+                
+                insertTab(tab, index + 1);
 
 				if (autoSelect) {
 					self.selectTab(tab);
@@ -868,21 +908,23 @@
 		self.closeTab = function (tab) {
 			if (self.tabs.length > 1) {
 				var index = self.tabs.indexOf(tab);
-				var i = index - 1;
-				if (index == -1) {
-					i = 0;
-				}
 
 				if (tab == self.currentTab) {
-					console.log('samge -> select new tab');
+                    var i = index - 1;
+                    if (i == -1) {
+                        i = 1;
+                    }
+
+                    var tabToSelect = self.tabs[i];
 					$timeout(function () {
-						self.selectTab(self.tabs[i]);
+						self.selectTab(tabToSelect);
 					}, 10);
 				}
 
 				tab.close();
 
 				$timeout(function () {
+                    index = self.tabs.indexOf(tab);
 					self.tabs.splice(index, 1);
 				}, 300);
 			}
@@ -891,20 +933,7 @@
 		self.pinTab = function (tab) {
             if(!tab.special) {
                 $timeout(function () {
-                    var index = self.tabs.indexOf(tab);
-                    if (index != -1) {
-                        self.tabs.splice(index, 1);
-                    }
-
-                    index = 0;
-                    var l = self.tabs.length;
-                    for (var i = 0; i < l; i++) {
-                        if (self.tabs[i].pinned) {
-                            index = i + 1;
-                        }
-                    }
-
-                    self.tabs.splice(index, 0, tab);
+                    insertTab(tab, getLastPinnedTabIndex() + 1);
                     tab.pinned = true;
 
                     savePinnedTabs();
@@ -914,21 +943,7 @@
 
 		self.unpinTab = function (tab) {
 			$timeout(function () {
-				var index = self.tabs.indexOf(tab);
-				if (index != -1) {
-					self.tabs.splice(index, 1);
-				}
-
-				index = 0;
-				var l = self.tabs.length;
-				for (var i = 0; i < l; i++) {
-					if (!self.tabs[i].pinned) {
-						index = i;
-						break;
-					}
-				}
-
-				self.tabs.splice(index, 0, tab);
+                insertTab(tab, getLastPinnedTabIndex() + 1);
 				tab.pinned = false;
                 
                 savePinnedTabs();
@@ -1180,7 +1195,7 @@
 
 	/// Web Page
 
-	app.controller('CWebPage', function ($scope, $element, $timeout) {
+	app.controller('CWebPage', function ($scope, $element, $timeout, SBookmark) {
 
 		// Element
 
@@ -1201,6 +1216,7 @@
             console.log('loaded');	
 			tab.loading = false;
 			tab.ready = true;
+            tab.bookmarked = SBookmark.getByUrl(tab.url) != null;
 			Browser.onTabLoad(tab);
 		}
         
@@ -1208,6 +1224,7 @@
             console.log('unloaded');
             tab.loading = true;
 			tab.ready = false;
+            tab.bookmarked = false;
         }
 
 		function onDocumentReadyStateChange() {

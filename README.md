@@ -21,7 +21,7 @@ If you find bugs, please file a bug report in the "Issues" tab on GitHub.
 
 ## Known bugs
 
-- Back/Forward button may crash the browser
+- (Not critical) Back/Forward button and Keyboard shortcuts may crash the browser if the app is reloaded using the reload app button.
 
 ## Screenshot
 
@@ -53,6 +53,7 @@ The important todo features include (in no particular order):
 
 - Web page context menu
 - Settings
+- Tab moving
 - Addons
 - Show Page source
 - Downloading management (progress & history)
