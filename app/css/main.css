@@ -252,14 +252,14 @@ a {
   opacity: 0.75;
 }
 .browser--launchpad h1 a {
-  color: #999;
+  opacity: 0.5;
   display: inline-block;
   margin-left: 4px;
   padding: 4px;
   transition: all 0.1s;
 }
 .browser--launchpad h1 a:hover {
-  color: #333;
+  opacity: 1;
 }
 .browser--launchpad .box {
   margin-bottom: 15px;
