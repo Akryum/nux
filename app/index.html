@@ -38,11 +38,13 @@
 		
 		<div class="window--controls">
             <!-- Clear all data -->
-			<a class="btn icon app-clear" ng-if="Browser.dev" ng-click="Browser.clearAllData();"><i class="fa fa-trash"></i></a>
+			<a class="btn icon app-clear" ng-if="Browser.dev" ng-click="Browser.clearAllData();" title="Clear browsing data"><i class="fa fa-trash"></i></a>
             <!-- Dev tools -->
-			<a class="btn icon app-dev" ng-if="Browser.dev" ng-click="Browser.openAppDevTools();"><i class="fa fa-wrench"></i></a>
+			<a class="btn icon app-dev" ng-if="Browser.dev" ng-click="Browser.openAppDevTools();" title="App dev tools"><i class="fa fa-wrench"></i></a>
             <!-- Reload app -->
-			<a class="btn icon reload" ng-if="Browser.dev" ng-click="Browser.reloadWindow();"><i class="fa fa-refresh"></i></a>
+			<a class="btn icon reload" ng-if="Browser.dev" ng-click="Browser.reloadWindow();" title="Reload app"><i class="fa fa-refresh"></i></a>
+            <!-- Toggle Theme -->
+			<a class="btn icon theme" ng-click="Browser.toggleTheme();" title="Toggle theme"><i class="fa fa-adjust"></i></a>
             <!-- Minimize -->
 			<a class="btn icon minimize" ng-click="Browser.minimizeWindow();"><i class="fa fa-chevron-down"></i></a>
             <!-- Maximize -->
@@ -54,38 +56,45 @@
         <!-- Tab bar -->
 
 		<div class="browser--tab-bar">
-			<div class="border"></div>
             
             <!-- Tabs -->
             
-			<div class="browser--tab" ng-repeat="tab in Browser.tabs | orderBy:'index'" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned}" title="{{ tab.title }}" ng-controller="CTab">
+			<tab class="browser--tab" ng-repeat="tab in Browser.tabs | orderBy:'index'" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned}" title="{{ tab.title }}" ng-controller="CTab">
                 
-                <!-- Tab favicon -->
+                <div class="tab-elements">
                 
-				<div class="browser--favicon" ng-class="{'no-favicon': !tab.favicon}">
-					<i class="fa fa-globe no-favicon"></i>
-					<img class="tab-favicon" src="{{ tab.favicon }}" />
-					<div class="loading-animation" ng-class="{hidden:!tab.loading}"></div>
-				</div>
-                
-                <!-- Tab label -->
-                
-				<div class="title">
-					<span ng-if="tab.title">{{ tab.title }}</span>
-					<span ng-if="!tab.title && !tab.loading">New Tab</span>
-					<span ng-if="!tab.title && tab.loading">Loading...</span>
-				</div>
-                
-                <!-- Tab close button -->
-                
-				<a class="btn icon close" ng-click="Browser.closeTab(tab);" if="Browser.tabs.length > 1"><i class="fa fa-times-circle"></i></a>
-			</div>
+                    <!-- Tab favicon -->
+
+                    <div class="browser--favicon" ng-class="{'no-favicon': !tab.favicon}">
+                        <i class="fa fa-globe no-favicon"></i>
+                        <img class="tab-favicon" src="{{ tab.favicon }}" />
+                        <div class="loading-animation" ng-class="{hidden:!tab.loading}"></div>
+                    </div>
+
+                    <!-- Tab label -->
+
+                    <div class="title">
+                        <span ng-if="tab.title">{{ tab.title }}</span>
+                        <span ng-if="!tab.title && !tab.loading">New Tab</span>
+                        <span ng-if="!tab.title && tab.loading">Loading...</span>
+                    </div>
+
+                    <!-- Tab close button -->
+
+                    <a class="btn icon close" ng-click="Browser.closeTab(tab);" if="Browser.tabs.length > 1"><i class="fa fa-times-circle"></i></a>
+
+                </div>
+			</tab>
             
-            <!-- New Tab button -->
+			<div class="no-tab">
+                <!-- New Tab button -->
+
+                <a class="btn icon" ng-click="Browser.addTab();">
+                    <i class="fa fa-plus"></i>
+                </a>
             
-			<a class="btn icon" ng-click="Browser.addTab();">
-				<i class="fa fa-plus"></i>
-			</a>
+            </div>
+            
 		</div>
         
         <!-- Browser main toolbar -->

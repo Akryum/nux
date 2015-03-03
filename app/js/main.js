@@ -331,11 +331,43 @@ console.log('chromium', process.versions['chromium']);
 		return new TabStorageService('tabs', false);
 	});
     
-    app.service('SDynamicStyling', function() {
-        var SDynamicStyling = function() {
+    app.service('SConfig', function() {
+        var SConfig = function() {
             var self = this;
             
+            var configData;
+            var data = localStorage.getItem('config');
+            
+            if(data) {
+                configData = JSON.parse(data);
+            } else {
+                configData = {};
+            }
+            
+            self.getConfig = function(key, defaultValue) {
+                if(configData[key] == undefined) {
+                    return defaultValue;
+                } else {
+                    return configData[key];
+                }
+            };
+            
+            self.setConfig = function(key, value) {
+                configData[key] = value;
+                self.save();
+            };
+            
+            self.clearAll = function() {
+                configData = {};
+            }
+            
+            self.save = function() {
+                localStorage.setItem('config', JSON.stringify(configData));
+            };
+            
         };
+        
+        return new SConfig();
     });
 
 	/* Filters */
@@ -350,7 +382,7 @@ console.log('chromium', process.versions['chromium']);
 
 	/// Main UI
 
-	app.controller('CMainUi', function ($sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon, SPinnedTab, STabSession) {
+	app.controller('CMainUi', function ($sce, $timeout, SNetwork, SBookmark, SHistory, SFavicon, SPinnedTab, STabSession, SConfig) {
 
 		var self = this;
         
@@ -677,6 +709,19 @@ console.log('chromium', process.versions['chromium']);
 		self.reloadWindow = function () {
 			win.reloadDev();
 		};
+        
+        self.toggleTheme = function() {
+            var body = $('html');
+            if(body.hasClass('light')) {
+                body.removeClass('light');
+                body.addClass('dark');
+                SConfig.setConfig('theme', 'dark');
+            } else {
+                body.removeClass('dark');
+                body.addClass('light');
+                SConfig.setConfig('theme', 'light');
+            }
+        };
 
 		self.minimizeWindow = function () {
 			win.minimize();
@@ -700,6 +745,7 @@ console.log('chromium', process.versions['chromium']);
 				SBookmark.clearAll();
 				SPinnedTab.setAll([]);
 				STabSession.setAll([]);
+                SConfig.clearAll();
 				self.reloadWindow();
 			}
 		}
@@ -1073,6 +1119,7 @@ console.log('chromium', process.versions['chromium']);
 		win.on('close', function () {
 			SBookmark.save();
 			SHistory.save();
+            SConfig.save();
             savePinnedTabs();
             saveTabSession();
 		});
@@ -1184,6 +1231,17 @@ console.log('chromium', process.versions['chromium']);
                 bookmarked: false,
                 historyItem: null
             });
+        }
+        
+        /* Theme */
+
+        var body = $('html');
+        if(SConfig.getConfig('theme', 'light') === 'light') {
+            body.removeClass('dark');
+            body.addClass('light');
+        } else {
+            body.removeClass('light');
+            body.addClass('dark');
         }
 
 		/* Start animation */

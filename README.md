@@ -8,6 +8,7 @@ A web browser written in html/css/javascript with awesome tools:
 - nw.js (node.js + Chromium Embedded)
 - angular.js
 - brackets.io
+- less
 
 Current app status: alpha - unstable - dev
 
@@ -29,6 +30,8 @@ If you find bugs, please file a bug report in the "Issues" tab on GitHub.
 
 ![alt tag](http://bytevortex.net/nux/screenshots/nux2.png)
 
+![alt tag](http://bytevortex.net/nux/screenshots/nux-dark-mode.png)
+
 ## What's done
 
 - Web browsing (Chromium renderer & V8 javascript engine)
@@ -46,6 +49,7 @@ If you find bugs, please file a bug report in the "Issues" tab on GitHub.
 - Some keyboard shortcuts
 - Session saving
 - App icon
+- Alternate 1-click Dark mode
 
 ## What's next
 

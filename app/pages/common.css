@@ -1,6 +1,7 @@
 body {
     margin: 0;
     font-family: sans-serif;
+    background: #e8e8e8;
 }
 
 h1 {
@@ -33,5 +34,5 @@ p.hero {
 
 hr {
     border: none;
-    border-bottom: solid 1px #e8e8e8;
+    border-bottom: solid 1px #ccc;
 }
