@@ -27,7 +27,11 @@ console.log('chromium', process.versions['chromium']);
 	var launchLinkMenu = new gui.Menu(),
 		menuTargetLaunchLink,
 		menuTargetLaunchLinkType;
-
+    
+    /* Theme */
+    
+    var lightWeightThemeStylesheet;
+    
 	/* Services */
 
 	app.service('SNetwork', function () {
@@ -1244,6 +1248,9 @@ console.log('chromium', process.versions['chromium']);
             body.removeClass('light');
             body.addClass('dark');
         }
+        
+        lightWeightThemeStylesheet = $('<style/>');
+        $('head').append(lightWeightThemeStylesheet);
 
 		/* Start animation */
 
@@ -1315,15 +1322,12 @@ console.log('chromium', process.versions['chromium']);
                     }
 
                     if (tab.ready) {
-                        if(document.title != oldTitle) {
-                            tab.title = document.title;
-
-                            if(tab.pinned && Browser.currentTab != tab && oldTitle != null) {
-                                tab.requireAttention = true;
-                            }
-                            
-                            oldTitle = document.title;
+                        if(document.title != oldTitle && tab.pinned && Browser.currentTab != tab && oldTitle != null) {
+                            tab.requireAttention = true;
                         }
+
+                        tab.title = document.title;
+                        oldTitle = document.title;
                     }
 
                     var body = document.getElementsByTagName('body');
@@ -1331,10 +1335,43 @@ console.log('chromium', process.versions['chromium']);
                     if (body && body.length > 0) {
                         handleClicks();
                     }
+                    
+                    $(document).off('InstallBrowserTheme', onThemeInstall);
+                    $(document).on('InstallBrowserTheme', onThemeInstall);
+                    $(document).off('PreviewBrowserTheme', onThemePreview);
+                    $(document).on('PreviewBrowserTheme', onThemePreview);
+                    $(document).off('ResetBrowserThemePreview', onThemeResetPreview);
+                    $(document).on('ResetBrowserThemePreview', onThemeResetPreview);
                 });
 			}
 
 		}
+                         
+        function onThemeInstall(evt) {
+            var themeData = JSON.parse(evt.target.getAttribute('data-browsertheme'));
+            console.log('InstallBrowserTheme', themeData);
+            applyTheme(themeData);
+        }
+                         
+        function onThemePreview(evt) {
+            var themeData = JSON.parse(evt.target.getAttribute('data-browsertheme'));
+            console.log('PreviewBrowserTheme', themeData);
+            applyTheme(themeData);
+        }
+        
+        function applyTheme(themeData) {
+            lightWeightThemeStylesheet.html("\
+                body { background-image: url(" + themeData.headerURL + ") !important; }\
+                body, a, input, .browser--address-bar-fake, .browser--launchpad .box, .browser--tab { color: " + themeData.textcolor + " !important; }\
+.browser--tab-bar .no-tab, .browser--tab, .browser--tab.closed { border-bottom: solid 1px " + themeData.accentcolor + " !important;  }\
+.browser--tab.selected { border: solid 1px " + themeData.accentcolor + " !important; border-bottom: 1px solid transparent !important; }\
+.browser--main-ui, .browser--main-ui.focus { border: solid 1px " + themeData.accentcolor + " !important; }\
+            ");
+        }
+                         
+        function onThemeResetPreview(evt) {
+            lightWeightThemeStylesheet.html("");
+        }
 
 		setInterval(onDocumentReadyStateChange, 100);
 

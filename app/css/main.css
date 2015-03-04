@@ -9,6 +9,7 @@ body {
   margin: 0;
   font-family: sans-serif;
   transition: all 0.3s;
+  background-position: top right;
 }
 a {
   cursor: default;
@@ -395,7 +396,6 @@ a {
   right: -1px;
 }
 .browser--tab.selected {
-  background: transparent !important;
   border-radius: 3px 3px 0 0;
   transition: width 0.3s, opacity 0.3s;
   z-index: 999;
@@ -426,6 +426,7 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  opacity: 0.5;
 }
 .browser--tab.pinned .title {
   display: none;
@@ -440,7 +441,8 @@ a {
   position: relative;
   z-index: 1;
 }
-.browser--tab.selected .browser--favicon {
+.browser--tab.selected .browser--favicon,
+.browser--tab.selected .title {
   opacity: 1;
 }
 .browser--tab.pinned .browser--favicon {
@@ -527,7 +529,7 @@ a {
 /* Themes */
 .light body {
   color: #222222;
-  background: #f8f8f8;
+  background-color: #f8f8f8;
 }
 .light a {
   color: #222222;
@@ -546,6 +548,7 @@ a {
 }
 .light .browser--toolbar {
   border-bottom: solid 1px #cccccc;
+  background: rgba(248, 248, 248, 0.8);
 }
 .light .browser--toolbar > .separator {
   background: rgba(204, 204, 204, 0.4);
@@ -578,6 +581,7 @@ a {
 }
 .light .browser--tab {
   border-bottom: solid 1px #cccccc;
+  color: #222222;
 }
 .light .browser--tab:hover {
   background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 255, 0.5) 100%);
@@ -585,15 +589,15 @@ a {
 }
 .light .browser--tab.selected {
   border: solid 1px #cccccc;
+  background: rgba(248, 248, 248, 0.8);
   border-bottom: 1px solid transparent !important;
-  color: #222222;
 }
 .light .browser--tab.closed {
   border-bottom: solid 1px #cccccc !important;
 }
 .dark body {
   color: #ffffff;
-  background: #4a4a4d;
+  background-color: #4a4a4d;
 }
 .dark a {
   color: #ffffff;
@@ -612,6 +616,7 @@ a {
 }
 .dark .browser--toolbar {
   border-bottom: solid 1px #272727;
+  background: rgba(74, 74, 77, 0.8);
 }
 .dark .browser--toolbar > .separator {
   background: rgba(39, 39, 39, 0.4);
@@ -644,6 +649,7 @@ a {
 }
 .dark .browser--tab {
   border-bottom: solid 1px #272727;
+  color: #ffffff;
 }
 .dark .browser--tab:hover {
   background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.07) 60%, rgba(0, 0, 0, 0.1) 100%);
@@ -651,8 +657,8 @@ a {
 }
 .dark .browser--tab.selected {
   border: solid 1px #272727;
+  background: rgba(74, 74, 77, 0.8);
   border-bottom: 1px solid transparent !important;
-  color: #ffffff;
 }
 .dark .browser--tab.closed {
   border-bottom: solid 1px #272727 !important;

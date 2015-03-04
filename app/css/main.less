@@ -32,6 +32,7 @@ body {
 	margin: 0;
 	font-family: sans-serif;
     transition: all 0.3s;
+    background-position: top right;
 }
 
 a {
@@ -489,7 +490,6 @@ a {
 }
 
 .browser--tab.selected {
-	background: transparent !important;
     border-radius: 3px 3px 0 0;
 	transition: width 0.3s, opacity 0.3s;
 	z-index: 999;
@@ -521,7 +521,8 @@ a {
 	flex: auto 1 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	white-space: nowrap;
+    white-space: nowrap;
+    opacity: 0.5;
 }
 
 .browser--tab.pinned .title {
@@ -539,7 +540,7 @@ a {
     z-index: 1;
 }
 
-.browser--tab.selected .browser--favicon {
+.browser--tab.selected .browser--favicon, .browser--tab.selected .title {
 	opacity: 1;
 }
 
@@ -648,7 +649,7 @@ a {
 .theme(@color; @color2; @background; @border; @button-background; @launchpad-background; @tab-hover-background) {
     body {
         color: @color;
-        background: @background;
+        background-color: @background;
     } 
     
     a {
@@ -673,6 +674,7 @@ a {
 
     .browser--toolbar {
         border-bottom: solid 1px @border;
+        background: fadeout(@background, 20%);
     }
     
     .browser--toolbar > .separator{
@@ -716,6 +718,7 @@ a {
     
     .browser--tab {
         border-bottom: solid 1px @border;
+        color: @color;
     }
     
     .browser--tab:hover {
@@ -725,8 +728,8 @@ a {
 
     .browser--tab.selected {
         border: solid 1px @border;
+        background: fadeout(@background, 20%);
         border-bottom: 1px solid transparent !important;
-        color: @color;
     }
     
     .browser--tab.closed {
