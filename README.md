@@ -50,6 +50,7 @@ If you find bugs, please file a bug report in the "Issues" tab on GitHub.
 - Session saving
 - App icon
 - Alternate 1-click Dark mode
+- Pinned tab indicator when title changed
 
 ## What's next
 
@@ -76,7 +77,6 @@ The important todo features include (in no particular order):
 - Auto-update system
 - Crash recovery
 - Password manager
-- Pinned tabs "blinking" when title changed
 - Themes
 - Official website
 - Bug reporting tool/site?
