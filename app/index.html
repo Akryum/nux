@@ -59,9 +59,11 @@
             
             <!-- Tabs -->
             
-			<tab class="browser--tab" ng-repeat="tab in Browser.tabs | orderBy:'index'" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned}" title="{{ tab.title }}" ng-controller="CTab">
+			<tab class="browser--tab" ng-repeat="tab in Browser.tabs | orderBy:'index'" ng-class="{selected:Browser.currentTab === tab, pinned:tab.pinned, 'require-attention': tab.requireAttention}" title="{{ tab.title }}" ng-controller="CTab">
                 
                 <div class="tab-elements">
+
+                    <div class="indicator"></div>
                 
                     <!-- Tab favicon -->
 
@@ -82,8 +84,9 @@
                     <!-- Tab close button -->
 
                     <a class="btn icon close" ng-click="Browser.closeTab(tab);" if="Browser.tabs.length > 1"><i class="fa fa-times-circle"></i></a>
-
+                    
                 </div>
+                
 			</tab>
             
 			<div class="no-tab">

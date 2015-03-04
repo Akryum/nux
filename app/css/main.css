@@ -59,7 +59,7 @@ a {
   box-sizing: border-box;
 }
 .browser--main-ui.maximized {
-  border: none;
+  border: none !important;
 }
 .browser--main-ui.hidden {
   opacity: 0;
@@ -186,7 +186,6 @@ a {
   display: inline-block;
   width: 32px;
   height: 32px;
-  background: #666;
   border-radius: 100%;
   -webkit-animation: loadingAnimation 1.5s ease-out infinite;
 }
@@ -438,6 +437,8 @@ a {
   flex: auto 0 0;
   opacity: 0.5;
   transition: opacity 0.3s;
+  position: relative;
+  z-index: 1;
 }
 .browser--tab.selected .browser--favicon {
   opacity: 1;
@@ -469,6 +470,21 @@ a {
   top: -8px;
   left: -8px;
 }
+.browser--tab .indicator {
+  flex: none;
+  position: absolute;
+  bottom: 1px;
+  left: 12px;
+  width: 4px;
+  height: 4px;
+  border-radius: 100%;
+  background: #4ca1ea;
+  visibility: hidden;
+  z-index: 0;
+}
+.browser--tab.require-attention .indicator {
+  visibility: visible;
+}
 /* Window */
 .window--title-bar {
   -webkit-app-region: drag;
@@ -499,7 +515,7 @@ a {
   opacity: 1;
 }
 .window--controls > .btn.icon:hover {
-  background: #82c0f5;
+  background: #4ca1ea;
   opacity: 1;
 }
 .browser--main-ui.focus .window--controls > .btn.icon.close {
@@ -536,6 +552,9 @@ a {
 }
 .light .browser--address-bar-fake {
   color: #222222;
+}
+.light .loading-animation {
+  background: #666666;
 }
 .light .browser--launchpad {
   background: -webkit-linear-gradient(top, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%);
@@ -599,6 +618,9 @@ a {
 }
 .dark .browser--address-bar-fake {
   color: #ffffff;
+}
+.dark .loading-animation {
+  background: #aaaaaa;
 }
 .dark .browser--launchpad {
   background: -webkit-linear-gradient(top, #383838 0%, rgba(56, 56, 56, 0.9) 100%);

@@ -842,6 +842,7 @@ console.log('chromium', process.versions['chromium']);
 			console.log('select tab', tab.urlInput);
 			if(tab) {
 				self.currentTab = tab;
+                tab.requireAttention = false;
 				self.updateAdressBar();
 				self.closeLaunchpad();
 			}
@@ -1268,7 +1269,7 @@ console.log('chromium', process.versions['chromium']);
 
 		// Load state management
 
-		var oldState, oldDomain;
+		var oldState, oldDomain, oldTitle;
 
 		function onLoad() {		
             console.log('loaded');	
@@ -1283,43 +1284,54 @@ console.log('chromium', process.versions['chromium']);
             tab.loading = true;
 			tab.ready = false;
             tab.bookmarked = false;
+            oldTitle = null;
         }
 
 		function onDocumentReadyStateChange() {
 			var document = window.document;
 			if (document) {
-                if (tab.ready) {
-                    tab.title = document.title;
-                }
-				
-				if (document.readyState != oldState) {
-					console.log(tab.urlInput + ' ' + oldState + ' -> ' + document.readyState);
-					oldState = document.readyState;
+                $timeout(function() {
+                    if (document.readyState != oldState) {
+                        console.log(tab.urlInput + ' ' + oldState + ' -> ' + document.readyState);
+                        oldState = document.readyState;
 
-					if (document.readyState == "uninitialized" || document.readyState == "loading") {
-						// Loading
-						tab.ready = false;
-						tab.loading = true;
-						tab.title = "Loading...";
-						if (location.origin != oldDomain) {
-							oldDomain = location.origin;
-							tab.favicon = null;
-						}
-					} else if (document.readyState == "loaded" || document.readyState == "interactive" || document.readyState == "complete") {
-						// Ready
-						tab.imageMode = (window.document.contentType.indexOf("image") != -1);
-						tab.ready = true;
-						Browser.onTabDocumentReady(tab);
-					}
+                        if (document.readyState == "uninitialized" || document.readyState == "loading") {
+                            // Loading
+                            tab.ready = false;
+                            tab.loading = true;
+                            tab.title = "Loading...";
+                            if (location.origin != oldDomain) {
+                                oldDomain = location.origin;
+                                tab.favicon = null;
+                            }
+                        } else if (document.readyState == "loaded" || document.readyState == "interactive" || document.readyState == "complete") {
+                            // Ready
+                            tab.imageMode = (window.document.contentType.indexOf("image") != -1);
+                            tab.ready = true;
+                            Browser.onTabDocumentReady(tab);
+                        }
 
 
-				}
+                    }
 
-				var body = document.getElementsByTagName('body');
+                    if (tab.ready) {
+                        if(document.title != oldTitle) {
+                            tab.title = document.title;
 
-				if (body && body.length > 0) {
-					handleClicks();
-				}
+                            if(tab.pinned && Browser.currentTab != tab && oldTitle != null) {
+                                tab.requireAttention = true;
+                            }
+                            
+                            oldTitle = document.title;
+                        }
+                    }
+
+                    var body = document.getElementsByTagName('body');
+
+                    if (body && body.length > 0) {
+                        handleClicks();
+                    }
+                });
 			}
 
 		}

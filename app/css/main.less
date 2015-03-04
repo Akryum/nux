@@ -1,7 +1,11 @@
 /* Colors */
 
+// Global
+@emphasize-color: #4ca1ea;
+
 // Light
 @light-color: #222;
+@light-color2: #666;
 @light-background: #f8f8f8;
 @light-border: #ccc;
 @light-button-background: white;
@@ -10,6 +14,7 @@
 
 // Dark
 @dark-color: #fff;
+@dark-color2: #aaa;
 @dark-background: #4a4a4d;
 @dark-border: #272727;
 @dark-button-background: #2e2e2e;
@@ -89,7 +94,7 @@ a {
 }
 
 .browser--main-ui.maximized {
-	border: none;
+	border: none !important;
 }
 
 .browser--main-ui.hidden {
@@ -242,7 +247,6 @@ a {
 	display: inline-block;
 	width: 32px;
 	height: 32px;
-	background: #666;
 	border-radius: 100%;
 	-webkit-animation: loadingAnimation 1.5s ease-out infinite;
 }
@@ -531,6 +535,8 @@ a {
 	flex: auto 0 0;
 	opacity: 0.5;
 	transition: opacity 0.3s;
+    position: relative;
+    z-index: 1;
 }
 
 .browser--tab.selected .browser--favicon {
@@ -571,6 +577,23 @@ a {
 	left: -8px;
 }
 
+.browser--tab .indicator {
+    flex: none;
+    position: absolute;
+    bottom: 1px;
+    left: 12px;
+    width: 4px;
+    height: 4px;
+    border-radius: 100%;
+    background: @emphasize-color;
+    visibility: hidden;
+    z-index: 0;
+}
+
+.browser--tab.require-attention .indicator {
+    visibility: visible;
+}
+
 /* Window */
 
 .window--title-bar {
@@ -607,7 +630,7 @@ a {
 }
 
 .window--controls > .btn.icon:hover {
-	background: #82c0f5;
+	background: @emphasize-color;
 	opacity: 1;
 }
 
@@ -622,7 +645,7 @@ a {
 /* Themes */
 
 
-.theme(@color; @background; @border; @button-background; @launchpad-background; @tab-hover-background) {
+.theme(@color; @color2; @background; @border; @button-background; @launchpad-background; @tab-hover-background) {
     body {
         color: @color;
         background: @background;
@@ -658,6 +681,11 @@ a {
 
     .browser--address-bar-fake {
         color: @color;
+    }
+    
+
+    .loading-animation {
+        background: @color2;
     }
     
     .browser--launchpad {
@@ -708,9 +736,9 @@ a {
 }
 
 .light {
-    .theme(@light-color; @light-background; @light-border; @light-button-background; @light-launchpad-background; @light-tab-hover-background);
+    .theme(@light-color; @light-color2; @light-background; @light-border; @light-button-background; @light-launchpad-background; @light-tab-hover-background);
 }
 
 .dark {
-    .theme(@dark-color; @dark-background; @dark-border; @dark-button-background; @dark-launchpad-background; @dark-tab-hover-background);
+    .theme(@dark-color; @dark-color2; @dark-background; @dark-border; @dark-button-background; @dark-launchpad-background; @dark-tab-hover-background);
 }
