@@ -1273,6 +1273,8 @@ console.log('chromium', process.versions['chromium']);
 		tab.window = window;
 
 		var Browser = $scope.$parent.$parent.Browser;
+		
+		var titleRegEx = /\(\s*([0-9]+)\s*\)/i;
 
 		// Load state management
 
@@ -1321,13 +1323,24 @@ console.log('chromium', process.versions['chromium']);
 
                     }
 
-                    if (tab.ready) {
-                        if(document.title != oldTitle && tab.pinned && Browser.currentTab != tab && oldTitle != null) {
+                    if (tab.ready && document.title != oldTitle) {
+                        if(tab.pinned && Browser.currentTab != tab) {
                             tab.requireAttention = true;
                         }
 
                         tab.title = document.title;
                         oldTitle = document.title;
+						
+						var match = document.title.match(titleRegEx);
+						console.log(match);
+						if(match && match.length > 1) {
+							tab.count = parseInt(match[1]);
+							if(tab.count > 9) {
+								tab.count = "+";
+							}
+						} else {
+							tab.count = null;
+						}
                     }
 
                     var body = document.getElementsByTagName('body');

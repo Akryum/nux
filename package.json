@@ -2,7 +2,7 @@
 	"name": "nux",
 	"main": "app/index.html",
 	"description": "web browser made with node-webkit",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"keywords": ["web", "browser", "node-webkit"],
 	"window": {
 		"title": "Nux",

@@ -476,16 +476,33 @@ a {
   flex: none;
   position: absolute;
   bottom: 1px;
-  left: 12px;
-  width: 4px;
-  height: 4px;
+  left: 13px;
+  width: 3px;
+  height: 3px;
   border-radius: 100%;
   background: #4ca1ea;
   visibility: hidden;
   z-index: 0;
 }
-.browser--tab.require-attention .indicator {
+.browser--tab.require-attention.pinned .indicator {
   visibility: visible;
+}
+.browser--tab .count-label {
+  flex: none;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  padding-top: 1px;
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 9px;
+  color: white;
+  background: #d93737;
+  border-radius: 100%;
+  z-index: 10;
+  box-shadow: inset 0 0 1px rgba(255, 255, 255, 0.3);
 }
 /* Window */
 .window--title-bar {

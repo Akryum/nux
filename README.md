@@ -24,7 +24,9 @@ If you find bugs, please file a bug report in the "Issues" tab on GitHub.
 
 - (Not critical) Back/Forward button and Keyboard shortcuts may crash the browser if the app is reloaded using the reload app button.
 
-## Screenshot
+## Fancy Screenshots
+
+These are not final. Everything is subject to change.
 
 ![alt tag](http://bytevortex.net/nux/screenshots/nux.png)
 
@@ -32,7 +34,11 @@ If you find bugs, please file a bug report in the "Issues" tab on GitHub.
 
 ![alt tag](http://bytevortex.net/nux/screenshots/nux-dark-mode.png)
 
-## What's done
+![alt tag](http://bytevortex.net/nux/screenshots/nux-count-label.png)
+
+(Icons from fontawesome.)
+
+## What's available for testing
 
 - Web browsing (Chromium renderer & V8 javascript engine)
 - Basic browser ui (back, forward & refresh)
@@ -49,8 +55,9 @@ If you find bugs, please file a bug report in the "Issues" tab on GitHub.
 - Some keyboard shortcuts
 - Session saving
 - App icon
-- Alternate 1-click Dark mode
+- Alternate One-click Dark mode
 - Pinned tab indicator when title changed
+- Count label for new messages on pinned tabs (for Twitter, Gmail, Facebook...)
 
 ## What's next
 
@@ -59,25 +66,27 @@ The important todo features include (in no particular order):
 - Web page context menu
 - Settings
 - Tab moving
-- Addons
 - Show Page source
 - Downloading management (progress & history)
 - Adress bar auto-completion & suggestions
 - Help menu
 - More menus for Favorites, History & Downloads
 - Localization system
+- RSS Reader
 - Optimization
-- Voice Search (using WebSpeech API)
-- Personnal assistant (notes, mails, alarms, places, maps, etc.)
-- Speed dial
-- Tab screenshots
-- Advanced plugins support (disable & update)
-- Search providers management (add/remove & default search engine)
-- Secured connection status (https)
 - Auto-update system
 - Crash recovery
 - Password manager
+- Addons
 - Themes
+- Page sharing
+- Voice Search (using WebSpeech API)
+- Personnal assistant (notes, mails, alarms, places, maps, etc.)
+- Speed dial
+- Tab screenshots (and thumbnails)
+- Advanced plugins support (disable & update)
+- Search providers management (add/remove & default search engine)
+- Secured connection status (https)
 - Official website
 - Bug reporting tool/site?
 - Community site/support
