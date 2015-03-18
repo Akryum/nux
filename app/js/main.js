@@ -1,5 +1,6 @@
 console.log('nw.js', process.versions['node-webkit']);
 console.log('chromium', process.versions['chromium']);
+console.log('chrome', chrome);
 
 
 (function () {
@@ -1128,6 +1129,45 @@ console.log('chromium', process.versions['chromium']);
             savePinnedTabs();
             saveTabSession();
 		});
+		
+		win.on('new-win-policy', function(frame, url, policy) {
+			console.log(frame, url, policy);
+			policy.ignore();
+			
+			var tab = frame.tab;
+			if(tab) {
+				var afterTab = tab;
+
+				if (tab.lastChildrenTab) {
+					afterTab = tab.lastChildrenTab;
+				}
+
+				self.openTab(tab, afterTab, url, false);
+			}
+		});
+		
+		/* Page change */
+		
+		window.addEventListener('beforeunload', function(evt) {
+			console.warn("LEAVING APP PAGE", evt);
+			
+			evt.returnValue = "You are leaving the app page!";
+			
+			return "You are leaving the app page!";
+		}, true);
+		
+		/* Web Requests */
+		
+		/*var filter = {
+			urls: ["<all_urls>"],
+			types: ["main_frame"]
+		};
+		
+		function onBeforeRequest(details) {
+			console.log("onBeforeRequest", details);
+		}
+		
+		chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, filter, ["blocking"]);*/
 
 		/* Keyboard shortcuts */
 		
@@ -1267,6 +1307,7 @@ console.log('chromium', process.versions['chromium']);
 
 		var element = $element[0];
 		var tab = $scope.$parent.tab;
+		element.tab = tab;
 		$scope.tab = tab;
 		tab.iframeElement = $(element);
 		var window = element.contentWindow;
@@ -1295,6 +1336,8 @@ console.log('chromium', process.versions['chromium']);
             tab.bookmarked = false;
             oldTitle = null;
         }
+		
+		var tick = 0;
 
 		function onDocumentReadyStateChange() {
 			var document = window.document;
@@ -1332,7 +1375,6 @@ console.log('chromium', process.versions['chromium']);
                         oldTitle = document.title;
 						
 						var match = document.title.match(titleRegEx);
-						console.log(match);
 						if(match && match.length > 1) {
 							tab.count = parseInt(match[1]);
 							if(tab.count > 9) {
@@ -1342,20 +1384,18 @@ console.log('chromium', process.versions['chromium']);
 							tab.count = null;
 						}
                     }
-
-                    var body = document.getElementsByTagName('body');
-
-                    if (body && body.length > 0) {
-                        handleClicks();
-                    }
                     
-                    $(document).off('InstallBrowserTheme', onThemeInstall);
-                    $(document).on('InstallBrowserTheme', onThemeInstall);
-                    $(document).off('PreviewBrowserTheme', onThemePreview);
-                    $(document).on('PreviewBrowserTheme', onThemePreview);
-                    $(document).off('ResetBrowserThemePreview', onThemeResetPreview);
-                    $(document).on('ResetBrowserThemePreview', onThemeResetPreview);
+					if(tick % 50 == 0) {
+						$(document).off('InstallBrowserTheme', onThemeInstall);
+						$(document).on('InstallBrowserTheme', onThemeInstall);
+						$(document).off('PreviewBrowserTheme', onThemePreview);
+						$(document).on('PreviewBrowserTheme', onThemePreview);
+						$(document).off('ResetBrowserThemePreview', onThemeResetPreview);
+						$(document).on('ResetBrowserThemePreview', onThemeResetPreview);
+					}
                 });
+				
+				tick ++;
 			}
 
 		}
@@ -1386,7 +1426,7 @@ console.log('chromium', process.versions['chromium']);
             lightWeightThemeStylesheet.html("");
         }
 
-		setInterval(onDocumentReadyStateChange, 100);
+		setInterval(onDocumentReadyStateChange, 300);
 
 		$(element).load(onLoad);
         $(window).unload(onUnload);
@@ -1400,48 +1440,6 @@ console.log('chromium', process.versions['chromium']);
                 window.removeEventListener('load', onLoad);
             }
 		};
-
-		// New tab opening
-
-		function handleClicks() {
-			$(element).contents().find('body').off('click', onBodyClick);
-			$(element).contents().find('body').click(onBodyClick);
-		}
-
-		function onBodyClick(evt) {
-			if (evt.which == 1 || evt.which == 2) {
-
-				var link = evt.target;
-
-				if (link.tagName != "a") {
-
-					var closestLink = $(link).closest('a');
-
-					if (closestLink.length > 0) {
-						link = closestLink[0];
-					} else {
-						link = null;
-					}
-
-				}
-
-				if (link && link.href && (evt.ctrlKey || evt.which == 2 || link.getAttribute('target') == '_blank')) {
-					evt.stopPropagation();
-					evt.preventDefault();
-
-					var afterTab = tab;
-
-					if (tab.lastChildrenTab) {
-						afterTab = tab.lastChildrenTab;
-					}
-
-					Browser.openTab(tab, afterTab, link.href, evt.shiftKey);
-					
-					return false;
-				}
-
-			}
-		}
 
 		// Startup page
 
