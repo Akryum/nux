@@ -554,8 +554,12 @@ console.log('chrome', chrome);
 						}
 					});
 
-					if (iconUrl && (iconUrl.charAt(0) == '/' || iconUrl.indexOf('./') == 0)) {
-						iconUrl = window.location.origin + iconUrl;
+					if (iconUrl){
+						if(iconUrl.indexOf('//') == 0) {
+							iconUrl = 'http:' + iconUrl;
+						} else if(iconUrl.charAt(0) == '/' || iconUrl.indexOf('./') == 0) {
+							iconUrl = window.location.origin + iconUrl;
+						}
 					}
 
 					console.log("icon", iconUrl);
